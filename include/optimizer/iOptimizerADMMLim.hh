@@ -241,7 +241,7 @@ class iOptimizerADMMLim : public vOptimizer
 
 // Class for automatic insertion (set here the visible optimizer's name as the first parameter,
 // put the class name as the second parameter and do NOT add semi-colon at the end of the line)
-CLASS_OPTIMIZER(ADMMLim,iOptimizerADMMLim)
+CLASS_OPTIMIZER(ADMMLim_old,iOptimizerADMMLim)
 
 #endif
 
