@@ -544,7 +544,6 @@ class vOptimizer
     */
     inline void ExitPreProcessLoop()
            {m_isInPreProcessLoop = false;}
-    /*!
 
     /*!
       \fn      public inline void vOptimizer::EnterDualProcessLoop()
@@ -560,7 +559,6 @@ class vOptimizer
            {m_isInDualProcessLoop = false;}
 
     /*!
-
       \fn      public inline void vOptimizer::EnterPostProcessLoop()
       \brief   Set post-process flag to true
     */
