@@ -52,7 +52,7 @@ int iIterativeAlgorithm::StepBeforeIterationLoop()
   }
 
   // double the number of iterations to merge dirty1 and dirty2
-  m_nbIterations = 2*m_nbIterations;
+  // m_nbIterations = 2*m_nbIterations;
 
   // Set numbers of iterations and subsets to the optimizer
   mp_OptimizerManager->SetNumbersOfIterationsAndSubsets(m_nbIterations, mp_nbSubsets);

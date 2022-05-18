@@ -266,7 +266,7 @@ class iOptimizerADMMLim_adaptiveRho : public vOptimizer
 
 // Class for automatic insertion (set here the visible optimizer's name as the first parameter,
 // put the class name as the second parameter and do NOT add semi-colon at the end of the line)
-CLASS_OPTIMIZER(ADMMLim_adp,iOptimizerADMMLim_adaptiveRho)
+CLASS_OPTIMIZER(ADMMLim_adaptiveRho,iOptimizerADMMLim_adaptiveRho)
 
 #endif
 
