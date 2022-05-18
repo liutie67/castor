@@ -545,6 +545,22 @@ class vOptimizer
     inline void ExitPreProcessLoop()
            {m_isInPreProcessLoop = false;}
     /*!
+
+    /*!
+      \fn      public inline void vOptimizer::EnterDualProcessLoop()
+      \brief   Set dual-process flag to true
+    */
+    inline void EnterDualProcessLoop()
+           {m_isInDualProcessLoop = true;}
+    /*!
+      \fn      public inline void vOptimizer::ExitDualProcessLoop()
+      \brief   Set dual-process flag to false
+    */
+    inline void ExitDualProcessLoop()
+           {m_isInDualProcessLoop = false;}
+
+    /*!
+
       \fn      public inline void vOptimizer::EnterPostProcessLoop()
       \brief   Set post-process flag to true
     */
@@ -706,6 +722,7 @@ class vOptimizer
     bool m_needPostProcessLoop;            /*!< Flag specifying if the optimizer needs to perform a post-processing loop (after iterations are done) */
     bool m_isInPreProcessLoop;             /*!< Flag specifying if the optimizer is currently under pre-processing loop (before iterations are done) */
     bool m_isInPostProcessLoop;            /*!< Flag specifying if the optimizer is currently under post-processing loop (after iterations are done) */
+    bool m_isInDualProcessLoop;            /*!< Flag specifying if the optimizer is currently under dual-processing loop (parallel processing loop)*/
     // Optimizer figures-of-merit computation
     bool m_optimizerFOMFlag;               /*!< A flag saying if figures-of-merit are computed in the data space */
     HPFLTNB**** m4p_FOMLogLikelihood;      /*!< The log-likelihood, as many as frames, respiratory gates, cardiac gates and threads */

@@ -52,6 +52,10 @@ vOptimizer::vOptimizer()
   m_needPostProcessLoop = false;
   m_isInPreProcessLoop = false;
   m_isInPostProcessLoop = false;
+
+  // flag to switch between dirty1 and dirty2
+  m_isInDualProcessLoop = false;
+
   mp_Penalty = NULL;
   m_requiredPenaltyDerivativesOrder = -1;
   m_needGlobalSensitivity = false;
