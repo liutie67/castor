@@ -1,0 +1,63 @@
+
+# GIT 
+ - Create a new release branch using git flow (git flow release start <version>)
+ - Perform the following steps on the new release branch
+
+# Basics
+ - If new modules have been added, add them in the respective documentation files
+ - Update the documentation
+
+# Change for version number
+ - Change the CASTOR_VERSION variable in include/management/gVariables.hh to the new version number
+ - Change the version number in the general documentation tex file
+ - Change all appropriate parameters in the 'make_release.sh' script (release number, dates, contributors)
+ - Create the release/particular_cases_vXXX.sh file to deal with files or directories from the git
+   that should not be included in the new release
+ - Create or complete the from_vPREVIOUS_to_vXXX.txt file containing the list of changes (more or less exhaustive...)
+
+# Benchmarks
+ - Decide if the new developments require some additional benchmarks
+ - Implement these benchmarks
+ - Generate the new benchmark reference images if the release is X.0 or X.Y (but not X.Y.Z)
+
+# Make the release
+ - Run the make_release.sh script
+ - Check that no unwanted/personal files are in the configuration subfolders
+ - Check that no unwanted files are in the different source subfolders
+ - Check that the documentation is readable and that all PDF are here
+ - Test the precompiled binaries with the benchmarks
+ - Make a zip file of the release sources and send it to colleagues for testing
+
+# Testing the release
+ - Compilation/test with Makefile and CMake
+ - Compilation/test with linux/windows/mac
+ - Compilation/test with/without OpenMP, MPI, ROOT, etc
+ - Compilation/test with different FLTNB
+ - Run all benchmarks in as many configurations as possible
+ - Run all toolkits with GATE examples
+ - Run all usual in-house reconstructions
+
+# Finalize the release
+ - Fix the bugs found during testing
+ - Finalize GIT branches (git flow release finish <version>)
+ - Rerun the "Make the release" step on the master branch
+
+# Website
+ - Generate doxygen and put it online
+ - Login on http://www.castor-project.org/user/login with admin and castor_&007
+ - Activate maintenance mode in the menu Configuration/Development/Maintenance Mode, and flush all caches by clicking on the menu Drupal_Icon/Flush all caches
+ - Modifications to be done on the website pages:
+   --> Main page: change version number in the text
+   --> Features page: update this page
+   --> Documentation menu, if a main version then create a new page, otherwise update the current page, upload documentation
+   --> Benchmarks menu, if a main version then create a new page, otherwise update the current page, upload benchmarks
+   --> Download page: update this page, put the old packages as archives
+ - Deactivate maintenance mode
+ - Send an email to the mailing list
+
+# Fixing bugs found after the release
+ - Create a hot fix branch (git flow hotfix start <version>)
+ - Fix the bugs
+ - Finalize the new fixed version (fit flow hotfix finish <version>), where the version number should ideally be incremented appropriately
+ - Rerun the "Make the release" step on the master branch and update the website, with an ideally incremented version number
+

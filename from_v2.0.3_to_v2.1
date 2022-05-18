@@ -1,0 +1,34 @@
+
+## New features
+- Add support for penalized reconstructions which includes:
+  - A generalization of the penalty concept, including two types of penalty:
+    - Customizable Markov-Random-Field (MRF) with:
+      --> several types of neighborhoods (boxes, spheres, nearest-neighbors)
+      --> proximity factors (constant, euclidian, voxel-based)
+      --> similarity factors (including asymmetrical Bowsher)
+      --> several potential functions (including quadratic, relative differences, log-cosh, huber, etc)
+    - Median-Root penalty (MRP), including several types of neighborhoods
+  - Three optimizers able to deal with any type of penalty added to the maximum-likelihood criteria:
+    - One-Step-Late, from Green: OSL
+    - Penalized Preconditioned Gradient Maximum Likelihood, from Nuyts: PPGML
+    - Block-Sequential Regularized Expectation Maximization version II, from Ahn and Fessler: BSREM
+  - One convergent optimizer dedicated to the Markov-Random-Field penalty with a quadratic potential function, from De Pierro: DEPIERRO95
+  - Self-included documentation with -help-opti and -help-pnlt options.
+
+## Bug corrections, code changes, that can affect the results in some way
+- For transmission data, cm-1 is used as the default unit. This factor is added into the mutliplicative terms of the system matrix and not
+  anymore applied within the forward model only (so that any call to ForwardProject() or BackwardProject() will take it into account).
+- Very minor changes in Landweber and MLEM implementations for log-converted transmission data, in limit cases:
+  --> No contribution of the data if the data or the model is strictly less than 1, for both algorithms.
+  --> No contribution of the data if the data or the model is higher than blank value, for MLEM.
+- In MLTR algorithm, remove the empirical alpha_ratio parameter. With the change of where the cm-1 unit factor is applied (see few lines
+  above), it affects the relaxation parameter values that were erroneous in the previous version, due to the ForwardProject() function
+  applied onto the alpha image that did not include the cm-1 unit factor. Now the relaxation factor is correct. In case you used the MLTR
+  algorithm in the previous version, relaxation factors have to be divided by 10 to get the same results.
+- When the time tag of the last events goes beyond the last frame, they are now ignored. Before, they were included in the last frame, which
+  was a bug. So in the case of a list-mode datafile where the time stop in the header is less than the time stamp of the last events, there
+  will be a difference.
+
+## Small bug fixes
+- Several but not listed...
+

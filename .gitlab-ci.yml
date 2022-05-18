@@ -1,0 +1,225 @@
+# This file is a template, and might need editing before it works on your project.
+# use the official gcc image, based on debian
+# can use verions as well, like gcc:5.2
+# see https://hub.docker.com/_/gcc/
+#image: ubuntu:18.04
+image: rootproject/root:6.22.00-ubuntu20.04
+
+variables:
+  CASTOR_OMP: 1
+  CASTOR_ROOT: 1
+  LOCAL_PATH: /builds/castor-collaboration
+  CASTOR_CONFIG:  $LOCAL_PATH/castor/config
+
+build_main_mk:
+  stage: build
+  # instead of calling g++ directly you can also use some build toolkit like make
+  # install the necessary build tools when needed
+  #before_script:
+  #  - apt update && apt -y install make autoconf g++ libgomp1
+  script:
+    #- g++ helloworld.cpp -o mybinary
+    - make
+    #- ls
+    #- $LOCAL_PATH/castor/bin/castor-recon
+    #-cmake -DCASToR_OMP=ON
+    #-make install
+  artifacts:
+    paths:
+    - $LOCAL_PATH/castor/bin
+      #- mybinary
+      # depending on your build setup it's most likely a good idea to cache outputs to reduce the build time
+      # cache:
+      #   paths:
+      #     - "*.o"
+
+build_alt_mk:
+  stage: build
+  # instead of calling g++ directly you can also use some build toolkit like make
+  # install the necessary build tools when needed
+  #before_script:
+    #- apt update && apt -y install make autoconf g++ libgomp1 cmake
+    #- apt -y install make autoconf g++ libgomp1 cmake
+    #- apt-get update -y && apt -y install mpi
+  script:
+    # makefile with MPI and high precision variables
+    - unset CASTOR_ROOT
+    # TODO: compilation with MPI: put it directly in image ?
+    #- export CASTOR_MPI=1
+    # Set gVariables file with high precision
+    - cp $LOCAL_PATH/castor/include/management/gVariables.precision $LOCAL_PATH/castor/include/management/gVariables.hh
+    - make
+  #artifacts:
+  #  paths:
+  #  - $LOCAL_PATH/castor/bin_cmake
+      #- mybinary
+      # depending on your build setup it's most likely a good idea to cache outputs to reduce the build time
+      # cache:
+      #   paths:
+      #     - "*.o"
+      
+
+build_cmk:
+  stage: build
+  # instead of calling g++ directly you can also use some build toolkit like make
+  # install the necessary build tools when needed
+  #before_script:
+    #- apt update && apt -y install make autoconf g++ libgomp1 cmake
+    #- apt -y install make autoconf g++ libgomp1 cmake
+    #- apt-get update -y && apt -y install mpi
+  script:
+    - mkdir bin_cmake
+    - cd bin_cmake
+    - cmake -DCASTOR_CONFIG=$LOCAL_PATH/castor/config -DCASToR_64bits=ON -DCASToR_OMP=ON -DCASToR_ROOT=ON -DCASToR_ROOT=ON -DCASToR_BUILD_GATE_UTILITIES=ON ../
+    #  -DCASToR_MPI=ON
+    - make
+  #artifacts:
+  #  paths:
+  #  - $LOCAL_PATH/castor/bin_cmake
+      #- mybinary
+      # depending on your build setup it's most likely a good idea to cache outputs to reduce the build time
+      # cache:
+      #   paths:
+      #     - "*.o"
+
+
+build_osx_mk:
+  image: sickcodes/docker-osx
+  stage: build
+  # instead of calling g++ directly you can also use some build toolkit like make
+  # install the necessary build tools when needed
+  #before_script:
+  #  - apt update && apt -y install make autoconf g++ libgomp1
+  script:
+    - ls /certs/
+    - ls /lib/
+    - ls /lib64/
+    - unset CASTOR_ROOT
+    - make
+
+
+# run tests using the binary built before
+test_ben_ct:
+  #image: rootproject/root:6.22.00-ubuntu20.04
+  stage: test
+  needs: [build_main_mk]
+  #before_script:
+  #  - apt update && apt -y install libgomp1
+  script:
+    - export PATH=$PATH:`pwd`/bin
+    #- echo $PATH
+    - cd ./pipeline/pipeline_gitlab_ct_histogram/
+    - ./run_benchmark_ct_histogram_unix.sh
+
+# run tests using the binary built before
+test_ben_spect:
+  #image: rootproject/root:6.22.00-ubuntu20.04
+  stage: test
+  needs: [build_main_mk]
+  #before_script:
+  #  - apt -y install libgomp1
+  script:
+    - export PATH=$PATH:`pwd`/bin
+    - cd ./pipeline/pipeline_gitlab_spect_histogram/
+    - ./run_benchmark_spect_histogram_unix.sh
+
+# run tests using the binary built before
+test_ben_pet_hist:
+  #image: rootproject/root:6.22.00-ubuntu20.04
+  stage: test
+  needs: [build_main_mk]
+  #before_script:
+  #  - apt -y install libgomp1
+  script:
+    - export PATH=$PATH:`pwd`/bin
+    - cd ./pipeline/pipeline_gitlab_pet_histogram/
+    - ./run_benchmark_pet_histogram_unix.sh
+
+
+# run tests using the binary built before
+test_ben_pet_list_reco:
+  #image: rootproject/root:6.22.00-ubuntu20.04
+  stage: test
+  needs: [build_main_mk]
+  #before_script:
+  #  - apt -y install libgomp1
+  script:
+    - export PATH=$PATH:`pwd`/bin
+    - cd ./pipeline/pipeline_gitlab_pet_listmode_reco/
+    - ./run_benchmark_pet_list-mode_unix.sh
+
+
+# run tests using the binary built before
+test_ben_pet_list_sens:
+  #image: rootproject/root:6.22.00-ubuntu20.04
+  stage: test
+  needs: [build_main_mk]
+  #before_script:
+  #  - apt -y install libgomp1
+  script:
+    - export PATH=$PATH:`pwd`/bin
+    - cd ./pipeline/pipeline_gitlab_pet_listmode_sens/
+    - ./run_benchmark_pet_list-mode_unix.sh
+
+
+# run tests using the binary built before
+test_ben_pet_dynamic:
+  stage: test
+  needs: [build_main_mk]
+  #before_script:
+  #  - apt -y install libgomp1
+  script:
+    - export PATH=$PATH:`pwd`/bin
+    - cd ./pipeline/pipeline_gitlab_pet_dynamic/
+    - ./run_benchmark_pet_dynamic_unix.sh
+
+# run tests using the binary built before
+test_ben_gate_converter:
+  stage: test
+  needs: [build_main_mk]
+  #before_script:
+  #  - apt -y install libgomp1
+  script:
+    - export PATH=$PATH:`pwd`/bin
+    - cd ./pipeline/pipeline_gitlab_gate_converter/
+    - cd ./benchmark_gate_pet/
+    - ./run_GATE_to_CASToR_conversion.sh
+    - cd ../benchmark_gate_pet_hist/
+    - ./run_GATE_to_CASToR_conversion.sh
+    - cd ../benchmark_gate_spect/
+    - ./run_GATE_to_CASToR_conversion_script.sh
+    # Various tests regarding geometry computation from macro files
+    - cd ../pipeline_gate_geom/scan_spect_pixelated
+    - ./run_GATE_to_GEOM_conversion_script.sh
+    - cd ../scan_pet_geo
+    - ./run_GATE_to_GEOM_conversion_script.sh
+    - cd ../scan_pet_ecat
+    - ./run_GATE_to_GEOM_conversion_script.sh
+    - cd ../scan_pet_layers
+    - ./run_GATE_to_GEOM_conversion_script.sh
+    
+# run tests using the binary built before
+test_ben_pet_dynamic_rigid-mot:
+  stage: test
+  needs: [build_main_mk]
+  #before_script:
+  #  - apt -y install libgomp1
+  script:
+    - export PATH=$PATH:`pwd`/bin
+    - cd ./pipeline/pipeline_gitlab_pet_rig-mot/
+    - ./run_benchmark_dmodel-rmotion_unix.sh
+    - ./run_benchmark_dmodel-post-recon_unix.sh
+    - echo $LOCAL_PATH
+
+
+#test_ben_all:
+ # stage: test
+ # script:
+ #   - export PATH=$PATH:`pwd`/bin_cmake_root
+ #   - cd ./pipeline/pipeline_gitlab_ct_histogram/
+ #   - ./run_benchmark_ct_histogram_unix.sh
+ #   - cd ../benchmark_gitlab_spect_histogram/
+ #   - ./run_benchmark_spect_histogram_unix.sh
+ #   - cd ../benchmark_gitlab_pet_histogram/
+ #   - ./run_benchmark_pet_histogram_unix.sh
+

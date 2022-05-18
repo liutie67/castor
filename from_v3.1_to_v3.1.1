@@ -1,0 +1,20 @@
+## New features
+- Add isotropic gaussian filter based on three 1D convolutions for enhanced efficiency
+
+## Bug corrections, code changes, that can affect the results in some way
+- Correction for patient motion correction (forward deformation management for sensitivity image was wrong)
+- Bug correction for multi-line siddon where all lines should be tested for inclusion into the FOV, thanks to Andreas Bolke.
+
+## Small bug fixes
+- Bug fix related to memory management of spectral model
+- Acquisition timing info are now always written in the datafile header
+- Bug correction for GATE converter:
+-- Small check over the consistency of crystal IDs values was added
+-- Corrections for macros mixing both cubicArray and linear repeaters in some command lines
+-- Fix bug regarding gap computation when using linear repeaters in GATE macro (axis was set to Z by default, even when repeaters were set to other axis)
+-- Add small warning if calculated castorID values overcome the max limit. This can occur in some situation with layers, when the crystals are not explicitely attach to the layer0 in GATE
+-- Fix datafile inconsistency bug occuring when noise events are included in the simulation, and leading to an incorrect number of events being written in the datafile when true/scatter/random only are selected. 
+   Note: Noise events are considered as random events.
+
+
+

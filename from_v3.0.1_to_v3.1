@@ -1,0 +1,28 @@
+
+## New features
+- Add python script to convert CASToR interfile images reconstructed with CASToR to NIfTI images. 
+  (This tool is not part of the distribution, but available at http://castor-project.org/links/)
+
+## Bug corrections, code changes, that can affect the results in some way
+- Modify default tolerance factors for Joseph and Distance-driven projectors (10-4 to 10-6), 
+  as it led to segmentation fault in at least one case for Joseph.
+- Add Joseph and Distance-driven projectors parameters option to manually set the tolerance factor.
+- Gate converter: 
+  --TOF: fix max TOF measurements range calculation (set as the coincidence window if this is provided in GATE macro, or from delta time measurements if not found).
+  Alternatively, one can provide it though a command line options
+  --Fix bug regarding the calculation of the position of the detector surface
+  (occurring when one uses negative setTranslation commands in the GATE geometry macro)
+  --For histogram output: set timestamp to start time frame duration 
+   (it was set to 0 by default, but since v2.2, events whose timestamp are outside the reconstruction time frame
+   were ignored, leading to all events be ignored if frame start time >0
+   
+- All spaces in dynamic model options are now replaced with underscores
+- Spectral model basis functions calculation was updated to match the bibliography methods
+  , specificaly for the full trapping compoment of the basis functions. 
+- Involuntary motion tags handling updated to avoid errors when motion correction time-tags coincide with dynamic frame start times.
+- Quantification factors adapted for gated reconstruction ( individual gates ) , as well as additive correction for the gate-duration within each frame
+
+## Small bug fixes
+- Small fixes in general documentation
+- Check of optimisation method used when using the castor-imageDynamicTools to avoid direct optimization (that is only possible for 4D recosntuctions) 
+- update of help for Patlak and Spectral linear dynamic models

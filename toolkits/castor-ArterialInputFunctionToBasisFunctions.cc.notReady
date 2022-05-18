@@ -1,0 +1,173 @@
+
+/*!
+  \file
+  \ingroup utils
+  \brief This program takes an sampled arterial input curve and calculates basis functions for the implemented dynamic models
+*/
+
+#include "gVariables.hh"
+#include "gOptions.hh"
+#include "sOutputManager.hh"
+#include <iomanip> //std::setprecision
+
+#include "oImageSpace.hh"
+#include "oDynamicModelManager.hh"
+#include "sRandomNumberGenerator.hh"
+/*!
+  \fn      ShowHelp()
+  \param a_returnCode
+  \brief   Display main command line options for castor-ArterialInputFunctionToBasisFunctions.cc
+*/
+void ShowHelp(int a_returnCode)
+{
+    cout << endl;
+    cout << "Usage:  castor-ArterialInputFunction      -i      path_to_AIC_file.txt"<< endl;
+    cout << "                                           -frm   Framing definition"<< endl;
+    cout << "Only Patlak model basis functions at the moment !!"<< endl;
+  Exit(a_returnCode);
+}
+
+
+/*
+  Main program
+*/
+
+int main(int argc, char** argv)
+{
+
+  // ============================================================================================================
+  // MPI stuff (we make all instances but the first one returning 0 directly)
+  // ============================================================================================================
+  #ifdef CASTOR_MPI
+  int mpi_rank = 0;
+  int mpi_size = 1;
+  MPI_Init(&argc, &argv);
+  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+  if (mpi_rank!=0) return 0;
+  #endif
+
+  string path_to_input_AIC = "";
+  string frames_list = "";
+
+  // No argument, then show help
+  if (argc==1) ShowHelp(0);
+
+  // ============================================================================================================
+  // Read command-line parameters
+  // ============================================================================================================
+  for (int i=1; i<argc; i++) {
+    string option = (string) argv[i];
+
+    if (option == "-h" || option == "--help" || option == "-help") ShowHelp(0);
+
+    // Just one file is provided
+    if (option=="-i") // This is a mandatory option
+    {
+      if (i>=argc-1)
+      {
+        Cerr("***** castor-ImageBasedDynamicModel() -> Argument missing for option: " << option << endl);
+        Exit(EXIT_FAILURE);
+      }
+      path_to_input_AIC = argv[i+1];
+      i++;
+    }
+    // Framing definition
+    else if (option=="-frm") // This is a mandatory option
+    {
+      if (i>=argc-1)
+      {
+        Cerr("***** castor-ImageBasedDynamicModel() -> Argument missing for option: " << option << endl);
+        Exit(EXIT_FAILURE);
+      }
+      frames_list = argv[i+1];
+      i++;
+    }
+
+  }
+
+
+  // ============================================================================================================
+  // Mandatory checks:
+  // ============================================================================================================
+
+  // Basic initialization checks (minimal initializations mandatory for the next steps)
+
+  // data files
+  if (path_to_input_AIC=="" )
+  {
+    Cerr("***** castor-ImageBasedDynamicModel :: Please provide all mandatory options (-i)" << endl);
+    ShowHelp(0);
+    Exit(EXIT_FAILURE);
+  }
+  else {
+    Cout(" Selected input AIC file: " );
+    Cout(path_to_input_AIC << endl);
+  }
+
+  if (frames_list=="" )
+  {
+    Cerr("***** castor-ImageBasedDynamicModel :: Please provide all mandatory options (-frm)" << endl);
+    ShowHelp(0);
+    Exit(EXIT_FAILURE);
+  }
+  // ============================================================================================================
+  // Initialization & Calculation
+  // ============================================================================================================
+  oImageDimensionsAndQuantification* p_ID = new oImageDimensionsAndQuantification();
+  // Set Framing list and example values for ImageDimensionsandQuantification to work.
+  p_ID->SetFrames(frames_list);
+  p_ID->SetNbVoxX(128);
+  p_ID->SetNbVoxY(128);
+  p_ID->SetNbVoxZ(89);
+  p_ID->SetNbThreads("1");
+  p_ID->SetNbBeds(1);
+  p_ID->SetVoxSizeX(2);
+  p_ID->SetVoxSizeY(2);
+  p_ID->SetVoxSizeZ(2);
+  p_ID->SetFOVOutMasking(0., 0);
+  p_ID->SetFOVSizeX(-1.);
+  p_ID->SetFOVSizeY(-1.);
+  p_ID->SetFOVSizeZ(-1.);
+  p_ID->SetOffsetX(0);
+  p_ID->SetOffsetY(0);
+  p_ID->SetOffsetZ(0);
+  p_ID->SetVerbose(5);
+  p_ID->SetNbRespGates(0);
+  p_ID->SetNbCardGates(0);
+  // Patlak has two basis functions
+  p_ID->SetNbTimeBasisFunctions(2);
+  p_ID->CheckParameters();
+  p_ID->Initialize();
+
+  // Initialize Arterial Curve , Interpolate and calculate Basis functions
+  oArterialInputCurve* p_AIC = new oArterialInputCurve();
+  p_AIC->SetInputFilePath(path_to_input_AIC);
+  p_AIC->SetFrames(p_ID->GetNbTimeFrames(),p_ID->GetFramesTimeStartsArray(0),p_ID->GetFramesTimeStopArray(0));
+  p_AIC->SetVerbose(5);
+  p_AIC->InitializeInputData();
+  p_AIC->InterpolateAIC();
+  p_AIC->CalculatePatlakBasisFunctions();
+
+  // Initialise basis functions and extract them from the AIC model
+  FLTNB** BasisFunctions = new FLTNB* [2];
+  for(int b=0 ; b<2 ; b++)
+  {
+    BasisFunctions[b] = new FLTNB [p_ID->GetNbTimeFrames()];
+  }
+  BasisFunctions = p_AIC->GetPatlakBasisFunctions();
+
+  // ----------------------------------------------------------------------------------------
+  // Output Values
+  // ----------------------------------------------------------------------------------------
+  for (int b=0 ; b<2 ; b++)
+  {
+    Cout("Patlak Basis function [" << b << "]: " << endl );
+    for (int fr=0;fr<p_ID->GetNbTimeFrames();fr++)
+    {
+      Cout(BasisFunctions[b][fr] << endl);
+    }
+  }
+
+  return 0;
+}

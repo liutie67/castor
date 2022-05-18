@@ -1,0 +1,49 @@
+
+## New features
+- Add dynamic reconstruction modules which includes:
+  - A dynamic model class, dedicated to kinetic modelling / parametric image reconstruction, including several classes:
+    - Class for linear model:
+      --> several level of application of the models (dynamic frames, respiratory/cardiac gates)
+      --> several optimisation methods (nested EM, NNLS, direct (within system matrix) )
+      --> interpolation of arterial input curve interpolation on framing protocols
+    - Class for Patlak model
+      --> automatic Patlak basis function computation from arterial input curve
+      --> several optimisation methods (nested EM, NNLS, direct (within system matrix), linear regression )
+    - Class for Spectral model from Cunningham et al., Reader et Al.
+      --> parameterization of spectral function coefficients (number, rate, etc..)
+      --> interpolation of arterial input function on framing protocol
+    - Class for 1-tissue compartement model
+      --> several optimisation methods (NNLS, LS with ridge-regression)
+      --> several integration methods (Weighed parabola overlapping, trapezoid)
+    - Template classes, to help implementing new dynamic models
+  - A image-based deformation class, dedicated to image-based transformation for motion correction, including the following class:
+    - Class for rigid deformation:
+      --> transformation performed through vectors containing 3 translation and 3 rotation parameters 
+    - Template class, to help implementing new deformation classes
+- Image based tool to apply dynamic models on dynamic set of images (post-reconstruction kinetic fitting)
+- Gated motion correction management
+- Timestamp-based motion correction management (random motion)
+- Several additional command-line options
+  - Improved selection of framing protocol: Frames start time, duration, gaps from command-line options
+  - New command line option to provide gated datasets splitting information
+  - Self-included documentation with -help-dynamic, -help-dynamic-model, -help-motion-model options.
+- Updated general documentation for dynamic reconstruction, and additionnal documentation for new dynamic classes
+
+- Update of time-of-flight (TOF) management for PET
+  - New options for computing TOF weights (accurate vs approximate, precomputed vs computed on the fly), see -proj-common and -help-projm
+  - TOF list-mode data file with quantized TOF measurements and the corresponding TOF weights, see general and TOF documentation
+
+- Generic iterative algorithm class
+  - vAlgorithm is now the base class for a reconstruction algorithm using 1 or more iterations and possibly subsets
+  - iIterativeAlgorithm implements iterative algorithms based on optimization
+
+- RCP-GS
+  - probabilistic PET reconstruction, with the possibility of using multimodal data, see -help-prob
+
+## Bug corrections, code changes, that can affect the results in some way
+- PET TOF reconstruction is slightly different
+
+
+## Small bug fixes
+- Several but not listed...
+
