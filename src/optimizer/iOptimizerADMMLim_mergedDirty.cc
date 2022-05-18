@@ -142,6 +142,20 @@ iOptimizerADMMLim_mergedDirty::~iOptimizerADMMLim_mergedDirty()
   {
     free(m_proj_grad_before);
   }
+  
+  // dirty 1 loop
+  if (!m_isInDualProcessLoop)
+  {
+    if (m_grad_before)
+    {
+      // Write u{k+1} sinogram with provided directory and filename, to be used in next Python iteration
+      std::stringstream temp_ss_g;
+      temp_ss_g << p_outputManager->GetPathName() << p_outputManager->GetBaseName() << "_g_OSadvance.img";
+      std::string a_pathToImg_g = temp_ss_g.str();
+      IntfWriteImage(a_pathToImg_g, m_grad_before, mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(), m_verbose);
+    }
+  }
+
   if (m_grad_before)
   {
     free(m_grad_before);
@@ -318,13 +332,19 @@ int iOptimizerADMMLim_mergedDirty::InitializeSpecific()
   
   // Allocate and create the whole gradient, which need to be stored to compute forward projection of it
   m_grad_before = (FLTNB*)malloc(mp_ImageDimensionsAndQuantification->GetNbVoxXYZ()*sizeof(FLTNB));
-  // Loop over voxels
-  for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
+  
+  // dirty 1
+  if (!m_isInDualProcessLoop)
   {
-    m_grad_before[v] = m_alpha * m_alpha;
-    //m_grad_before[v] = 1; // No information given but slower ?
-  }
+    // Loop over voxels
+    for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
+    {
+      m_grad_before[v] = m_alpha * m_alpha;
+      //m_grad_before[v] = 1; // No information given but slower ?
+    }
 
+  }
+  
   // Allocate and initialize gradient projection
   m_proj_grad_before = (HPFLTNB*)malloc(mp_DataFile->GetSinogramSize()*sizeof(HPFLTNB));
   for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
@@ -366,6 +386,16 @@ int iOptimizerADMMLim_mergedDirty::DataStep4Optional( oProjectionLine* ap_Line, 
     // Retrieve index of current event and get v^k and u^k at this event from -additional-data option
     m_uk[a_th] = mp_DataFile->m2p_additionalData[0][ap_Line->GetEventIndex()];
     m_vk[a_th] = mp_DataFile->m2p_additionalData[1][ap_Line->GetEventIndex()];    
+  }
+
+  // dirty 2
+  if(m_isInDualProcessLoop)
+  {
+    // Loop over voxels
+    for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
+    {
+      m_grad_before[v] = mp_ImageSpace->m2p_multiModalImage[1][v];
+    }
   }
 
   // End
