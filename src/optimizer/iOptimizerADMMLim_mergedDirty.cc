@@ -142,7 +142,7 @@ iOptimizerADMMLim_mergedDirty::~iOptimizerADMMLim_mergedDirty()
   {
     free(m_proj_grad_before);
   }
-  
+  /*
   // dirty 1 loop
   if (!m_isInDualProcessLoop)
   {
@@ -155,6 +155,8 @@ iOptimizerADMMLim_mergedDirty::~iOptimizerADMMLim_mergedDirty()
       IntfWriteImage(a_pathToImg_g, m_grad_before, mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(), m_verbose);
     }
   }
+  */
+  
 
   if (m_grad_before)
   {
@@ -388,6 +390,7 @@ int iOptimizerADMMLim_mergedDirty::DataStep4Optional( oProjectionLine* ap_Line, 
     m_vk[a_th] = mp_DataFile->m2p_additionalData[1][ap_Line->GetEventIndex()];    
   }
 
+  /*
   // dirty 2
   if(m_isInDualProcessLoop)
   {
@@ -397,6 +400,7 @@ int iOptimizerADMMLim_mergedDirty::DataStep4Optional( oProjectionLine* ap_Line, 
       m_grad_before[v] = mp_ImageSpace->m2p_multiModalImage[1][v];
     }
   }
+  */
 
   // End
   return 0;
