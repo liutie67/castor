@@ -437,7 +437,12 @@ int iOptimizerADMMLim_mergedDirty::DataStep5ComputeCorrections( oProjectionLine*
     m_AxProduct[a_th] = (HPFLTNB)m2p_forwardValues[a_th][b] - (HPFLTNB)a_additiveCorrections;
     // Backward project (Ax - v^k + u^k), a_forwardModel is Ax here because we have overwritten the Forward Projection computation in this optimizer
     *ap_backwardValues = m_AxProduct[a_th] - (HPFLTNB)m_vk[a_th] + (HPFLTNB)m_uk[a_th];
-  
+    /*
+    if (ap_Line->GetEventIndex()%1000==0){cout << "---*m_AxProduct[a_th]------*m_AxProduct[a_th]---" << m_AxProduct[a_th] << endl;}
+    if (ap_Line->GetEventIndex()%1000==0){cout << "-----------------*m_vk[a_th]------*m_vk[a_th]---" << m_vk[a_th] << endl;}
+    if (ap_Line->GetEventIndex()%1000==0){cout << "-----------------*m_uk[a_th]------*m_uk[a_th]---" << m_uk[a_th] << endl;}
+    if (ap_Line->GetEventIndex()%1000==0){cout << "---*ap_backwardValues------*ap_backwardValues---" << *ap_backwardValues << endl;}
+    */
     if (m_isInPostProcessLoop)
     {
       // We need the data and background events without backprojection after, so store them in m_yData and m_rBackgroundEvents
@@ -613,13 +618,15 @@ int iOptimizerADMMLim_mergedDirty::PreImageUpdateSpecificStep()
     // Zero the gradient projection for this LOR
     m_proj_grad_before[lor] = 0.;
   }
-  cout << "*************************************************************************** 3" << endl;
+  // cout << "***m_proj_grad_norm_sum***m_proj_grad_norm_sum***" <<  m_proj_grad_norm_sum << endl;
+  // cout << "************************************************ 3" << endl;
   for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
   {
     m_grad_norm_sum += (HPFLTNB)m_grad_before[v]*(HPFLTNB)m_grad_before[v];
     // Zero the gradient for this voxel
     m_grad_before[v] = 0.;
   }
+  // cout << "---m_grad_norm_sum------m_grad_norm_sum---" << m_grad_norm_sum << endl;
 
   // Normal end  
   return 0;
@@ -637,20 +644,24 @@ int iOptimizerADMMLim_mergedDirty::ImageSpaceSpecificOperations( FLTNB a_current
   // Store gradient for next iteration
   // cout << "*************************************************************************** 4" << endl;
   m_grad_before[a_voxel] = *ap_correctionValues;
+  // if (a_voxel%1000==0.) {cout << "------m_grad_before------m_grad_before------m_grad_before------m_grad_before------" << m_grad_before[a_voxel] << endl;}
   if (!m_isInPostProcessLoop) // Do x computation
   {
-    if (m_isInDualProcessLoop)
-    {
+    // if (a_voxel==0) {cout << "---------------------------------------------------------------------------------------------------" << m_currentIteration << endl;}
       ////////////// Update with preconditioned gradient descent //////////////  
       // Scale penalty with respect to the number of subsets to get correct balance between likelihood and penalty
       HPFLTNB penalty = ((HPFLTNB)(m4p_firstDerivativePenaltyImage[a_tbf][a_rbf][a_cbf][a_voxel])) / ((HPFLTNB)(mp_nbSubsets[m_currentIteration]));
       // Compute conjugate gradient best stepsize after line search using norms from previous iteration
+      // if (a_voxel==0) {cout << "---m_proj_grad_norm_sum------m_proj_grad_norm_sum---" << m_proj_grad_norm_sum << endl;}
       HPFLTNB stepsize = m_grad_norm_sum / (((HPFLTNB)m_alpha * m_proj_grad_norm_sum) + (mp_Penalty->GetPenaltyStrength()*m_grad_norm_sum));
-
+      // if (a_voxel==0) {cout << "---------------------------stepsize------stepsize---" << stepsize << endl;}
+      // stepsize = 100.;
       // Compute additive image update factor
       HPFLTNB gradient = -(HPFLTNB)m_alpha * (HPFLTNB)*ap_correctionValues + penalty;
       HPFLTNB additive_image_update_factor = stepsize * gradient;
 
+    if (m_isInDualProcessLoop)
+    {
       // Update image value and store it
       *ap_newImageValue = (HPFLTNB)a_currentImageValue + additive_image_update_factor;
     }
