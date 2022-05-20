@@ -2,23 +2,23 @@
 /*!
   \file
   \ingroup  optimizer
-  \brief    Declaration of class iOptimizerADMMLim
+  \brief    Declaration of class iOptimizerADMMLim_mergedDirty
 */
 
-#ifndef iOptimizerADMMLim_HH
-#define iOptimizerADMMLim_HH 1
+#ifndef iOptimizerADMMLim_mergedDirty_HH
+#define iOptimizerADMMLim_mergedDirty_HH 1
 
 #include "gVariables.hh"
 #include "sAddonManager.hh"
 #include "vOptimizer.hh"
 
 /*!
-  \class   iOptimizerADMMLim
+  \class   iOptimizerADMMLim_mergedDirty
   \brief   This class implements the ADMM with non-negativity on projection space
   \details This class inherits from vOptimizer and implements the ADMM algorithm
            proposed by Lim et al. to ensure positivity of the projections.
 */
-class iOptimizerADMMLim_adaptiveRho : public vOptimizer
+class iOptimizerADMMLim_mergedDirty : public vOptimizer
 {
   // -------------------------------------------------------------------
   // Constructor & Destructor
@@ -29,21 +29,21 @@ class iOptimizerADMMLim_adaptiveRho : public vOptimizer
       \details This is the default and unique constructor. It does not take any parameter and
                its role is only to affect default values to each member of the class.
     */
-    iOptimizerADMMLim_adaptiveRho();
+    iOptimizerADMMLim_mergedDirty();
     /*!
       \fn      public iOptimizerADMMLim::~iOptimizerADMMLim()
       \brief   The destructor of iOptimizerADMMLim
       \details This is the default and unique destructor. It does not take any parameter and
                its role is only to free or delete all structures that were built by this class.
     */
-    ~iOptimizerADMMLim_adaptiveRho();
+    ~iOptimizerADMMLim_mergedDirty();
 
 
   // -------------------------------------------------------------------
   // Public member functions
   public:
     // Function for automatic insertion (put the class name as the parameter and do not add semi-column at the end of the line)
-    FUNCTION_OPTIMIZER(iOptimizerADMMLim_adaptiveRho)
+    FUNCTION_OPTIMIZER(iOptimizerADMMLim_mergedDirty)
     /*!
       \fn      public int iOptimizerADMMLim::ReadConfigurationFile()
       \param   const string& a_configurationFile
@@ -236,37 +236,12 @@ class iOptimizerADMMLim_adaptiveRho : public vOptimizer
     HPFLTNB m_proj_grad_norm_sum;                  /*!< Copy of norm of projection of gradient vector, to be used in conjugate gradient in current x computation */
     FLTNB* m_grad_before;                          /*!< Gradient vector to compute gradient norm in conjugate gradient in next x computation and needed to compute projection of it */
     HPFLTNB* m_proj_grad_before;                   /*!< Projection of gradient vector in conjugate gradient for each lor, to be stored for next x computation */
-
-    // added variables for adaptive Rho
-    FLTNB* mp_previousAx;
-    FLTNB* mp_relPrimalResidual;
-    FLTNB* mp_relDualResidual;
-    // FLTNB* mp_PrimalResidual;
-    // FLTNB* mp_DualResidual;
-    FLTNB* mp_vectorAx;
-    // FLTNB* mp_vectorV;
-    // FLTNB* mp_vectorU;
-
-    FLTNB m_square_sum_Ax;
-    FLTNB m_square_sum_v;
-    FLTNB m_square_sum_u;
-    FLTNB m_square_sum_primal;
-    FLTNB m_square_sum_dual;
-
-    FLTNB m_adaptiveAlpha;
-    FLTNB m_adaptiveTau;
-
-    FLTNB m_xi;
-    FLTNB m_mu;
-    FLTNB m_tau;
-
-
 };
 
 
 // Class for automatic insertion (set here the visible optimizer's name as the first parameter,
 // put the class name as the second parameter and do NOT add semi-colon at the end of the line)
-CLASS_OPTIMIZER(ADMMLim_adaptiveRho,iOptimizerADMMLim_adaptiveRho)
+CLASS_OPTIMIZER(ADMMLim,iOptimizerADMMLim_mergedDirty)
 
 #endif
 

@@ -273,6 +273,20 @@ class oOptimizerManager
     */
     inline void ExitPreProcessLoop()
            {mp_Optimizer->ExitPreProcessLoop();}
+
+    /*!
+      \fn      public inline void oOptimizerManager::EnterDualProcessLoop()
+      \brief   Set dual-process flag to true
+    */
+    inline void EnterDualProcessLoop()
+           {mp_Optimizer->EnterDualProcessLoop();}
+    /*!
+      \fn      public inline void oOptimizerManager::ExitDualProcessLoop()
+      \brief   Set dual-process flag to false
+    */
+    inline void ExitDualProcessLoop()
+           {mp_Optimizer->ExitDualProcessLoop();}
+
     /*!
       \fn      public inline void oOptimizerManager::EnterPostProcessLoop()
       \brief   Set post-process flag of the vOptimizer to true

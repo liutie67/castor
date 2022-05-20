@@ -51,6 +51,9 @@ int iIterativeAlgorithm::StepBeforeIterationLoop()
     return 1;
   }
 
+  // double the number of iterations to merge dirty1 and dirty2
+  // m_nbIterations = 2*m_nbIterations;
+
   // Set numbers of iterations and subsets to the optimizer
   mp_OptimizerManager->SetNumbersOfIterationsAndSubsets(m_nbIterations, mp_nbSubsets);
   
@@ -84,7 +87,17 @@ int iIterativeAlgorithm::StepBeforeSubsetLoop(int a_iteration)
 
   // Set the current iteration to the optimizer
   mp_OptimizerManager->SetCurrentIteration(a_iteration);
+  cout << "---a_iteration------a_iteration---" << a_iteration <<endl;
 
+  // Set the isInDualProcessLoop flag according to the modulo 2 of current iteration
+  if (a_iteration%2==1||a_iteration==0)
+  {
+    mp_OptimizerManager->EnterDualProcessLoop();
+  }else
+  {
+    mp_OptimizerManager->ExitDualProcessLoop();
+  }
+  // mp_OptimizerManager->EnterDualProcessLoop();
   // End
   return 0;
 }
