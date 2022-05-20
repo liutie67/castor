@@ -828,7 +828,7 @@ int iOptimizerADMMLim_adaptiveRho::ImageSpaceSpecificOperations( FLTNB a_current
 {
   // Store gradient for next iteration
   m_grad_before[a_voxel] = *ap_correctionValues;
-  if (!m_isInPostProcessLoop) // Do x computation
+  if (!m_isInPostProcessLoop&&m_isInDualProcessLoop) // Do x computation
   {
     ////////////// Update with preconditioned gradient descent //////////////  
     // Scale penalty with respect to the number of subsets to get correct balance between likelihood and penalty
