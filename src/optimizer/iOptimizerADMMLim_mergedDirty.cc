@@ -653,7 +653,15 @@ int iOptimizerADMMLim_mergedDirty::ImageSpaceSpecificOperations( FLTNB a_current
       HPFLTNB penalty = ((HPFLTNB)(m4p_firstDerivativePenaltyImage[a_tbf][a_rbf][a_cbf][a_voxel])) / ((HPFLTNB)(mp_nbSubsets[m_currentIteration]));
       // Compute conjugate gradient best stepsize after line search using norms from previous iteration
       // if (a_voxel==0) {cout << "---m_proj_grad_norm_sum------m_proj_grad_norm_sum---" << m_proj_grad_norm_sum << endl;}
-      HPFLTNB stepsize = m_grad_norm_sum / (((HPFLTNB)m_alpha * m_proj_grad_norm_sum) + (mp_Penalty->GetPenaltyStrength()*m_grad_norm_sum));
+      HPFLTNB stepsize = 0.;
+      if (m_proj_grad_norm_sum == 0.)
+      {
+        stepsize = 0.;
+      }
+      else
+      {
+        stepsize = m_grad_norm_sum / (((HPFLTNB)m_alpha * m_proj_grad_norm_sum) + (mp_Penalty->GetPenaltyStrength()*m_grad_norm_sum));
+      }
       // if (a_voxel==0) {cout << "---------------------------stepsize------stepsize---" << stepsize << endl;}
       // stepsize = 100.;
       // Compute additive image update factor
