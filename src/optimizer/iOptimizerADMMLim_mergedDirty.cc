@@ -142,22 +142,6 @@ iOptimizerADMMLim_mergedDirty::~iOptimizerADMMLim_mergedDirty()
   {
     free(m_proj_grad_before);
   }
-  /*
-  // dirty 1 loop
-  if (!m_isInDualProcessLoop)
-  {
-    if (m_grad_before)
-    {
-      // Write u{k+1} sinogram with provided directory and filename, to be used in next Python iteration
-      std::stringstream temp_ss_g;
-      temp_ss_g << p_outputManager->GetPathName() << p_outputManager->GetBaseName() << "_g_OSadvance.img";
-      std::string a_pathToImg_g = temp_ss_g.str();
-      IntfWriteImage(a_pathToImg_g, m_grad_before, mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(), m_verbose);
-    }
-  }
-  */
-  
-
   if (m_grad_before)
   {
     free(m_grad_before);
@@ -338,8 +322,9 @@ int iOptimizerADMMLim_mergedDirty::InitializeSpecific()
   // Loop over voxels
   for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
   {
-    m_grad_before[v] = m_alpha * m_alpha;
-    //m_grad_before[v] = 1; // No information given but slower ?
+    // m_grad_before[v] = m_alpha * m_alpha;
+    // m_grad_before[v] = 1; // No information given but slower ?
+    m_grad_before[v] = 0.;
   }
 
   
@@ -385,20 +370,6 @@ int iOptimizerADMMLim_mergedDirty::DataStep4Optional( oProjectionLine* ap_Line, 
     m_uk[a_th] = mp_DataFile->m2p_additionalData[0][ap_Line->GetEventIndex()];
     m_vk[a_th] = mp_DataFile->m2p_additionalData[1][ap_Line->GetEventIndex()];    
   }
-
-  
-
-  /*
-  // dirty 2
-  if(m_isInDualProcessLoop)
-  {
-    // Loop over voxels
-    for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
-    {
-      m_grad_before[v] = mp_ImageSpace->m2p_multiModalImage[1][v];
-    }
-  }
-  */
 
   // End
   return 0;
@@ -607,26 +578,28 @@ int iOptimizerADMMLim_mergedDirty::PreImageUpdateSpecificStep()
     }
   }
 
-
-  // Zero norm of gradient projection and norm of gradient projection for this iteration
-  m_grad_norm_sum = 0.;
-  m_proj_grad_norm_sum = 0.;
-  // Compute norms using values from all threads
-  for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
+  if (m_isInDualProcessLoop)
   {
-    m_proj_grad_norm_sum += m_proj_grad_before[lor]; // already squared
-    // Zero the gradient projection for this LOR
-    m_proj_grad_before[lor] = 0.;
+    // Zero norm of gradient projection and norm of gradient projection for this iteration
+    m_grad_norm_sum = 0.;
+    m_proj_grad_norm_sum = 0.;
+    // Compute norms using values from all threads
+    for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
+    {
+      m_proj_grad_norm_sum += m_proj_grad_before[lor]; // already squared
+      // Zero the gradient projection for this LOR
+      m_proj_grad_before[lor] = 0.;
+    }
+    // cout << "***m_proj_grad_norm_sum***m_proj_grad_norm_sum***" <<  m_proj_grad_norm_sum << endl;
+    // cout << "************************************************ 3" << endl;
+    for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
+    {
+      m_grad_norm_sum += (HPFLTNB)m_grad_before[v]*(HPFLTNB)m_grad_before[v];
+      // Zero the gradient for this voxel
+      m_grad_before[v] = 0.;
+    }
+    // cout << "---m_grad_norm_sum------m_grad_norm_sum---" << m_grad_norm_sum << endl;
   }
-  // cout << "***m_proj_grad_norm_sum***m_proj_grad_norm_sum***" <<  m_proj_grad_norm_sum << endl;
-  // cout << "************************************************ 3" << endl;
-  for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
-  {
-    m_grad_norm_sum += (HPFLTNB)m_grad_before[v]*(HPFLTNB)m_grad_before[v];
-    // Zero the gradient for this voxel
-    m_grad_before[v] = 0.;
-  }
-  // cout << "---m_grad_norm_sum------m_grad_norm_sum---" << m_grad_norm_sum << endl;
 
   // Normal end  
   return 0;
@@ -645,16 +618,19 @@ int iOptimizerADMMLim_mergedDirty::ImageSpaceSpecificOperations( FLTNB a_current
   // cout << "*************************************************************************** 4" << endl;
   m_grad_before[a_voxel] = *ap_correctionValues;
   // if (a_voxel%1000==0.) {cout << "------m_grad_before------m_grad_before------m_grad_before------m_grad_before------" << m_grad_before[a_voxel] << endl;}
-  if (!m_isInPostProcessLoop) // Do x computation
+  if (m_isInDualProcessLoop)
   {
-    // if (a_voxel==0) {cout << "---------------------------------------------------------------------------------------------------" << m_currentIteration << endl;}
+    if (!m_isInPostProcessLoop) // Do x computation
+    {
+      // if (a_voxel==0) {cout << "---------------------------------------------------------------------------------------------------" << m_currentIteration << endl;}
       ////////////// Update with preconditioned gradient descent //////////////  
       // Scale penalty with respect to the number of subsets to get correct balance between likelihood and penalty
       HPFLTNB penalty = ((HPFLTNB)(m4p_firstDerivativePenaltyImage[a_tbf][a_rbf][a_cbf][a_voxel])) / ((HPFLTNB)(mp_nbSubsets[m_currentIteration]));
       // Compute conjugate gradient best stepsize after line search using norms from previous iteration
       // if (a_voxel==0) {cout << "---m_proj_grad_norm_sum------m_proj_grad_norm_sum---" << m_proj_grad_norm_sum << endl;}
       HPFLTNB stepsize = 0.;
-      if (m_proj_grad_norm_sum == 0.)
+      // not only m_proj_grad_norm_sum == 0., but also take the penalty into consideration
+      if ((((HPFLTNB)m_alpha * m_proj_grad_norm_sum) + (mp_Penalty->GetPenaltyStrength()*m_grad_norm_sum)) == 0.)
       {
         stepsize = 0.;
       }
@@ -668,8 +644,7 @@ int iOptimizerADMMLim_mergedDirty::ImageSpaceSpecificOperations( FLTNB a_current
       HPFLTNB gradient = -(HPFLTNB)m_alpha * (HPFLTNB)*ap_correctionValues + penalty;
       HPFLTNB additive_image_update_factor = stepsize * gradient;
 
-    if (m_isInDualProcessLoop)
-    {
+    
       // Update image value and store it
       *ap_newImageValue = (HPFLTNB)a_currentImageValue + additive_image_update_factor;
     }
