@@ -190,7 +190,7 @@ iOptimizerADMMLim_adaptiveRho::~iOptimizerADMMLim_adaptiveRho()
     free(m_rBackgroundEvents);
   }
 
-  // free the memory space of adaptive rho/alpha variables
+  // deallocate the memory space of adaptive rho/alpha variables
   if (mp_previousAx)
   {
       free(mp_previousAx);
@@ -438,8 +438,9 @@ int iOptimizerADMMLim_adaptiveRho::InitializeSpecific()
   // Loop over voxels
   for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
   {
-    m_grad_before[v] = m_alpha * m_alpha;
+    // m_grad_before[v] = m_alpha * m_alpha;
     //m_grad_before[v] = 1; // No information given but slower ?
+    m_grad_before[v] = 0.;
   }
 
   // Allocate and initialize gradient projection
@@ -524,7 +525,7 @@ int iOptimizerADMMLim_adaptiveRho::DataStep5ComputeCorrections( oProjectionLine*
     *ap_backwardValues = m_AxProduct[a_th] - (HPFLTNB)m_vk[a_th] + (HPFLTNB)m_uk[a_th];
 
     // save Ax at the k-th iteration for dual residual calculation
-    if (m_currentIteration == 0)
+    if (m_currentIteration == 1)  // as the double iteration problem in castor, '1' is the first working iteration
     {
         mp_previousAx[ap_Line->GetEventIndex()] = m_AxProduct[a_th];
     }
@@ -621,7 +622,7 @@ int iOptimizerADMMLim_adaptiveRho::DataStep6Optional( oProjectionLine* ap_Line, 
     // mp_PrimalResidual[ap_Line->GetEventIndex()] = mp_vectorAx[ap_Line->GetEventIndex()] - mp_vectorV[ap_Line->GetEventIndex()];
     // mp_DualResidual[ap_Line->GetEventIndex()] = mp_previousAx[ap_Line->GetEventIndex()] - mp_vectorAx[ap_Line->GetEventIndex()];
 
-    if (ap_Line->GetEventIndex() == mp_DataFile->GetSinogramSize()-1)  // after all the events in one iteration
+    if ((ap_Line->GetEventIndex() == mp_DataFile->GetSinogramSize()-1)&&m_isInDualProcessLoop)  // after all the events in one iteration
     {
         // calculate the square sum of Ax, v and u at (k+1)th iteration
         for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
@@ -634,6 +635,7 @@ int iOptimizerADMMLim_adaptiveRho::DataStep6Optional( oProjectionLine* ap_Line, 
         // find the bigger one between Ax(k+1) and v(k+1)
         primalMax = (m_square_sum_Ax > m_square_sum_v) ? m_square_sum_Ax:m_square_sum_v;
 
+        // to prevent calculation sqrt in every iteration
         primalMax = sqrt(primalMax);
         m_square_sum_u = sqrt(m_square_sum_u);
         // calculate relative residuals
@@ -651,7 +653,8 @@ int iOptimizerADMMLim_adaptiveRho::DataStep6Optional( oProjectionLine* ap_Line, 
         }
 
         // implement the adaptive formulation of tau
-        m_adaptiveTau = sqrt((1/m_xi)* sqrt(m_square_sum_primal)/ sqrt(m_square_sum_dual));
+        // m_adaptiveTau = sqrt((1/m_xi)*(sqrt(m_square_sum_primal)*primalMax)/ (sqrt(m_square_sum_dual)*m_square_sum_u*m_alpha));
+        m_adaptiveTau = sqrt((1/m_xi)*sqrt(m_square_sum_primal)/ sqrt(m_square_sum_dual));
         if (m_adaptiveTau >= 1 && m_adaptiveTau < m_tau )
         {
             ;
@@ -663,20 +666,20 @@ int iOptimizerADMMLim_adaptiveRho::DataStep6Optional( oProjectionLine* ap_Line, 
             m_adaptiveTau = m_tau;
         }
         
-        // implement the adaptive formulation
+        // implement the adaptive formulation of alpha(rho)
         if (sqrt(m_square_sum_primal) > m_xi*m_mu*sqrt(m_square_sum_dual))
         {
-            m_adaptiveAlpha = m_alpha*m_adaptiveTau;  // here is the difference of adaptive tau or no
+            m_adaptiveAlpha = m_alpha*m_adaptiveTau;  // here is the difference of adaptive tau or not
         }
         else if (sqrt(m_square_sum_dual) > (1/m_xi)*m_mu*sqrt(m_square_sum_primal))
         {
-            m_adaptiveAlpha = m_alpha/m_adaptiveTau;  // here is the difference of adaptive tau or no
+            m_adaptiveAlpha = m_alpha/m_adaptiveTau;  // here is the difference of adaptive tau or not
         } else
         {
 
             m_adaptiveAlpha = m_alpha;
         }
-
+        m_adaptiveAlpha = m_alpha;  // do not change alpha
 
         // get the path
         sOutputManager* p_outputManager = sOutputManager::GetInstance();
@@ -684,7 +687,7 @@ int iOptimizerADMMLim_adaptiveRho::DataStep6Optional( oProjectionLine* ap_Line, 
         temps_ss_alpha = p_outputManager->GetPathName() + p_outputManager->GetBaseName();
 
         // print both alpha and the obtained adaptive alpha for next iteration
-        temps_ss_alpha +=  "_adaptive_alpha.log";
+        temps_ss_alpha +=  "_adaptive.log";
         ofstream outfile;
         outfile.open(temps_ss_alpha);
         outfile << "adaptive alpha : " << endl;
@@ -796,21 +799,24 @@ int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
     }
   }
 
-  // Zero norm of gradient projection and norm of gradient projection for this iteration
-  m_grad_norm_sum = 0.;
-  m_proj_grad_norm_sum = 0.;
-  // Compute norms using values from all threads
-  for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
+  if (m_isInDualProcessLoop)
   {
-    m_proj_grad_norm_sum += m_proj_grad_before[lor]; // already squared
-    // Zero the gradient projection for this LOR
-    m_proj_grad_before[lor] = 0.;
-  }
-  for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
-  {
-    m_grad_norm_sum += (HPFLTNB)m_grad_before[v]*(HPFLTNB)m_grad_before[v];
-    // Zero the gradient for this voxel
-    m_grad_before[v] = 0.;
+    // Zero norm of gradient projection and norm of gradient projection for this iteration
+    m_grad_norm_sum = 0.;
+    m_proj_grad_norm_sum = 0.;
+    // Compute norms using values from all threads
+    for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
+    {
+      m_proj_grad_norm_sum += m_proj_grad_before[lor]; // already squared
+      // Zero the gradient projection for this LOR
+      m_proj_grad_before[lor] = 0.;
+    }
+    for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
+    {
+      m_grad_norm_sum += (HPFLTNB)m_grad_before[v]*(HPFLTNB)m_grad_before[v];
+      // Zero the gradient for this voxel
+      m_grad_before[v] = 0.;
+    }
   }
 
   // Normal end  
@@ -828,13 +834,24 @@ int iOptimizerADMMLim_adaptiveRho::ImageSpaceSpecificOperations( FLTNB a_current
 {
   // Store gradient for next iteration
   m_grad_before[a_voxel] = *ap_correctionValues;
-  if (!m_isInPostProcessLoop) // Do x computation
+  if ((!m_isInPostProcessLoop)&&m_isInDualProcessLoop) // Do x computation
   {
     ////////////// Update with preconditioned gradient descent //////////////  
     // Scale penalty with respect to the number of subsets to get correct balance between likelihood and penalty
     HPFLTNB penalty = ((HPFLTNB)(m4p_firstDerivativePenaltyImage[a_tbf][a_rbf][a_cbf][a_voxel])) / ((HPFLTNB)(mp_nbSubsets[m_currentIteration]));
     // Compute conjugate gradient best stepsize after line search using norms from previous iteration
-    HPFLTNB stepsize = m_grad_norm_sum / (((HPFLTNB)m_alpha * m_proj_grad_norm_sum) + (mp_Penalty->GetPenaltyStrength()*m_grad_norm_sum));
+    
+    // HPFLTNB stepsize = m_grad_norm_sum / (((HPFLTNB)m_alpha * m_proj_grad_norm_sum) + (mp_Penalty->GetPenaltyStrength()*m_grad_norm_sum));
+    HPFLTNB stepsize = 0.;
+    // not only m_proj_grad_norm_sum == 0., but also take the penalty into consideration
+    if ((((HPFLTNB)m_alpha * m_proj_grad_norm_sum) + (mp_Penalty->GetPenaltyStrength()*m_grad_norm_sum)) == 0.)
+    {
+      stepsize = 0.;
+    }
+    else
+    {
+      stepsize = m_grad_norm_sum / (((HPFLTNB)m_alpha * m_proj_grad_norm_sum) + (mp_Penalty->GetPenaltyStrength()*m_grad_norm_sum));
+    }
 
     // Compute additive image update factor
     HPFLTNB gradient = -(HPFLTNB)m_alpha * (HPFLTNB)*ap_correctionValues + penalty;

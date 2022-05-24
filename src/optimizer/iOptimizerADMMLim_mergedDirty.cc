@@ -318,7 +318,6 @@ int iOptimizerADMMLim_mergedDirty::InitializeSpecific()
   
   // Allocate and create the whole gradient, which need to be stored to compute forward projection of it
   m_grad_before = (FLTNB*)malloc(mp_ImageDimensionsAndQuantification->GetNbVoxXYZ()*sizeof(FLTNB));
-
   // Loop over voxels
   for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
   {
