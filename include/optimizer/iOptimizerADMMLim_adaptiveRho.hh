@@ -247,6 +247,10 @@ class iOptimizerADMMLim_adaptiveRho : public vOptimizer
     // FLTNB* mp_vectorV;
     // FLTNB* mp_vectorU;
 
+    FLTNB* mp_vectorAtu;
+    FLTNB* mp_vectorAtvv;
+    FLTNB* m_previous_v;
+
     FLTNB m_square_sum_Ax;
     FLTNB m_square_sum_v;
     FLTNB m_square_sum_u;

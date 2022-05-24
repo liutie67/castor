@@ -84,7 +84,7 @@ int iIterativeAlgorithm::StepBeforeSubsetLoop(int a_iteration)
 
   // Set the current iteration to the optimizer
   mp_OptimizerManager->SetCurrentIteration(a_iteration);
-  cout << "---a_iteration------a_iteration---" << a_iteration <<endl;
+  // cout << "---a_iteration------a_iteration---" << a_iteration <<endl;
 
   // Set the isInDualProcessLoop flag according to the modulo 2 of current iteration
   // if (a_iteration%2==1||a_iteration==0)
