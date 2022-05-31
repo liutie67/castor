@@ -83,6 +83,7 @@ int vAlgorithm::SetNbIterationsAndSubsets(const string& a_nbIterationsSubsets)
       return 1;
     }
     int iter = atoi(  sub_buf.substr(0,pos_column).c_str()  );
+    if (mp_OptimizerManager->NeedDoubleIteration()) iter *= 2;
     int subs = atoi(  sub_buf.substr(pos_column+1).c_str()  );
     mp_nbSubsets = (int*)realloc(mp_nbSubsets,(m_nbIterations+iter)*sizeof(int));
     for (int it=0; it<iter; it++) mp_nbSubsets[m_nbIterations+it] = subs;
@@ -98,6 +99,7 @@ int vAlgorithm::SetNbIterationsAndSubsets(const string& a_nbIterationsSubsets)
     return 1;
   }
   int iter = atoi(  buf.substr(0,pos_column).c_str()  );
+  if (mp_OptimizerManager->NeedDoubleIteration()) iter *= 2;
   int subs = atoi(  buf.substr(pos_column+1).c_str()  );
   mp_nbSubsets = (int*)realloc(mp_nbSubsets,(m_nbIterations+iter)*sizeof(int));
   for (int it=0; it<iter; it++) mp_nbSubsets[m_nbIterations+it] = subs;
@@ -106,8 +108,15 @@ int vAlgorithm::SetNbIterationsAndSubsets(const string& a_nbIterationsSubsets)
   if (m_verbose>=3) 
   {
     Cout("vAlgorithm::SetNbIterationsAndSubsets() ->  Selected numbers of subsets for each iteration:" << endl); 
-    Cout("  Iteration / number of subsets "<< endl); 
-    for (int it=0 ; it<m_nbIterations ; it++) Cout("    " << it+1 << "  /  " <<  mp_nbSubsets[it] << endl); 
+    Cout("  Iteration / number of subsets "<< endl);
+    if (mp_OptimizerManager->NeedDoubleIteration())
+    {
+      for (int it=0 ; it<m_nbIterations/2 ; it++) Cout("    " << it+1 << "  /  " <<  mp_nbSubsets[it*2] << endl); 
+    }
+    else
+    {
+      for (int it=0 ; it<m_nbIterations ; it++) Cout("    " << it+1 << "  /  " <<  mp_nbSubsets[it] << endl); 
+    }
   }
   // End
   return 0;
