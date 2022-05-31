@@ -59,6 +59,9 @@ iOptimizerADMMLim_adaptiveRho::iOptimizerADMMLim_adaptiveRho() : vOptimizer()
   m_needPreProcessLoop = false;
   m_needPostProcessLoop = true;
 
+  // ADMMLim needs to double iteration to fix the gradient problem due to the structure of CASToR
+  m_needDoubleIteration = true;
+
   // --------------------------
   // Specific member parameters
   // --------------------------
