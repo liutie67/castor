@@ -24,10 +24,10 @@ This is CASToR version 3.1.
 /*!
   \file
   \ingroup  optimizer
-  \brief    Implementation of class iOptimizerADMMLim_adaptiveRho
+  \brief    Implementation of class iOptimizerADMMLim_new
 */
 
-#include "iOptimizerADMMLim_adaptiveRho.hh"
+#include "iOptimizerADMMLim_new.hh"
 #include "sOutputManager.hh"
 
 // =====================================================================
@@ -36,7 +36,7 @@ This is CASToR version 3.1.
 // =====================================================================
 
 
-iOptimizerADMMLim_adaptiveRho::iOptimizerADMMLim_adaptiveRho() : vOptimizer()
+iOptimizerADMMLim_new::iOptimizerADMMLim_new() : vOptimizer()
 {
   // ---------------------------
   // Mandatory member parameters
@@ -115,7 +115,7 @@ iOptimizerADMMLim_adaptiveRho::iOptimizerADMMLim_adaptiveRho() : vOptimizer()
 // ---------------------------------------------------------------------
 // =====================================================================
 
-iOptimizerADMMLim_adaptiveRho::~iOptimizerADMMLim_adaptiveRho()
+iOptimizerADMMLim_new::~iOptimizerADMMLim_new()
 {
   // Note: there is no need to deallocate the images themselves as they are allocate using the
   //       miscellaneous image function from the image space, which automatically deals with
@@ -234,7 +234,7 @@ iOptimizerADMMLim_adaptiveRho::~iOptimizerADMMLim_adaptiveRho()
 // ---------------------------------------------------------------------
 // =====================================================================
 
-void iOptimizerADMMLim_adaptiveRho::ShowHelpSpecific()
+void iOptimizerADMMLim_new::ShowHelpSpecific()
 {
   cout << "This optimizer is the ADMM with non-negativity constraint on projection space." << endl;
   cout << "It was proposed by H. Lim, Y. K. Dewaraja, and J. A. Fessler, Physics " << endl;
@@ -256,7 +256,7 @@ void iOptimizerADMMLim_adaptiveRho::ShowHelpSpecific()
 // ---------------------------------------------------------------------
 // =====================================================================
 
-int iOptimizerADMMLim_adaptiveRho::ReadConfigurationFile(const string& a_configurationFile)
+int iOptimizerADMMLim_new::ReadConfigurationFile(const string& a_configurationFile)
 {
   string key_word = "";
 
@@ -301,7 +301,7 @@ int iOptimizerADMMLim_adaptiveRho::ReadConfigurationFile(const string& a_configu
 // ---------------------------------------------------------------------
 // =====================================================================
 
-int iOptimizerADMMLim_adaptiveRho::ReadOptionsList(const string& a_optionsList)
+int iOptimizerADMMLim_new::ReadOptionsList(const string& a_optionsList)
 {
   // There are 1 floating point variable as option
   const int nb_options = 4;
@@ -329,7 +329,7 @@ int iOptimizerADMMLim_adaptiveRho::ReadOptionsList(const string& a_optionsList)
 // ---------------------------------------------------------------------
 // =====================================================================
 
-int iOptimizerADMMLim_adaptiveRho::CheckSpecificParameters()
+int iOptimizerADMMLim_new::CheckSpecificParameters()
 {
   // Check that penalty parameter alpha is positive
   if (m_alpha<=0.)
@@ -382,7 +382,7 @@ int iOptimizerADMMLim_adaptiveRho::CheckSpecificParameters()
 // ---------------------------------------------------------------------
 // =====================================================================
 
-int iOptimizerADMMLim_adaptiveRho::InitializeSpecific()
+int iOptimizerADMMLim_new::InitializeSpecific()
 {
   // Allocate and create the penalty image
   m4p_firstDerivativePenaltyImage = (FLTNB****)malloc(mp_ImageDimensionsAndQuantification->GetNbTimeBasisFunctions()*sizeof(FLTNB***));
@@ -515,7 +515,7 @@ int iOptimizerADMMLim_adaptiveRho::InitializeSpecific()
 // ---------------------------------------------------------------------
 // =====================================================================
 
-int iOptimizerADMMLim_adaptiveRho::DataStep4Optional( oProjectionLine* ap_Line, vEvent* ap_Event,
+int iOptimizerADMMLim_new::DataStep4Optional( oProjectionLine* ap_Line, vEvent* ap_Event,
                                    int a_bed, int a_timeFrame, int a_respGate, int a_cardGate,
                                    int a_th )
 {
@@ -542,7 +542,7 @@ int iOptimizerADMMLim_adaptiveRho::DataStep4Optional( oProjectionLine* ap_Line, 
 // ---------------------------------------------------------------------
 // =====================================================================
 
-int iOptimizerADMMLim_adaptiveRho::SensitivitySpecificOperations( FLTNB a_data, FLTNB a_forwardModel, FLTNB* ap_weight,
+int iOptimizerADMMLim_new::SensitivitySpecificOperations( FLTNB a_data, FLTNB a_forwardModel, FLTNB* ap_weight,
                                                    FLTNB a_multiplicativeCorrections, FLTNB a_additiveCorrections, FLTNB a_blankValue,
                                                    FLTNB a_quantificationFactor, oProjectionLine* ap_Line )
 {
@@ -557,7 +557,7 @@ int iOptimizerADMMLim_adaptiveRho::SensitivitySpecificOperations( FLTNB a_data, 
 // ---------------------------------------------------------------------
 // =====================================================================
 
-int iOptimizerADMMLim_adaptiveRho::DataStep5ComputeCorrections( oProjectionLine* ap_Line, vEvent* ap_Event,
+int iOptimizerADMMLim_new::DataStep5ComputeCorrections( oProjectionLine* ap_Line, vEvent* ap_Event,
                                              int a_bed, int a_timeFrame, int a_respGate, int a_cardGate,
                                              int a_th )
 {
@@ -598,7 +598,7 @@ int iOptimizerADMMLim_adaptiveRho::DataStep5ComputeCorrections( oProjectionLine*
 // ---------------------------------------------------------------------
 // =====================================================================
 
-int iOptimizerADMMLim_adaptiveRho::DataStep6Optional( oProjectionLine* ap_Line, vEvent* ap_Event,
+int iOptimizerADMMLim_new::DataStep6Optional( oProjectionLine* ap_Line, vEvent* ap_Event,
                                    int a_bed, int a_timeFrame, int a_respGate, int a_cardGate,
                                    int a_th )
 {
@@ -728,7 +728,7 @@ int iOptimizerADMMLim_adaptiveRho::DataStep6Optional( oProjectionLine* ap_Line, 
       {
           m_adaptiveTau = m_tau;
       }
-      m_adaptiveTau = m_tau;  // do not change tau
+      // m_adaptiveTau = m_tau;  // do not change tau
 
       // implement the adaptive formulation of alpha(rho)
       if (sqrt(m_square_sum_primal) > m_xi*m_mu*sqrt(m_square_sum_dual))
@@ -790,7 +790,7 @@ int iOptimizerADMMLim_adaptiveRho::DataStep6Optional( oProjectionLine* ap_Line, 
 // ---------------------------------------------------------------------
 // =====================================================================
 
-int iOptimizerADMMLim_adaptiveRho::DataSpaceSpecificOperations( FLTNB a_data, FLTNB a_forwardModel, FLTNB* ap_backwardValues,
+int iOptimizerADMMLim_new::DataSpaceSpecificOperations( FLTNB a_data, FLTNB a_forwardModel, FLTNB* ap_backwardValues,
                                                  FLTNB a_multiplicativeCorrections, FLTNB a_additiveCorrections, FLTNB a_blankValue,
                                                  FLTNB a_quantificationFactor, oProjectionLine* ap_Line )
 {
@@ -803,7 +803,7 @@ int iOptimizerADMMLim_adaptiveRho::DataSpaceSpecificOperations( FLTNB a_data, FL
 // ---------------------------------------------------------------------
 // =====================================================================
 
-int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
+int iOptimizerADMMLim_new::PreImageUpdateSpecificStep()
 {
   // ==========================================================================================
   // If no penalty, then exit (the penalty image term has been initialized to 0)
@@ -813,12 +813,12 @@ int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
   omp_set_num_threads(mp_ImageDimensionsAndQuantification->GetNbThreadsForImageComputation());
   #endif
   // Verbose
-  if (m_verbose>=1) Cout("iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep() -> Compute penalty term" << endl);
+  if (m_verbose>=1) Cout("iOptimizerADMMLim_new::PreImageUpdateSpecificStep() -> Compute penalty term" << endl);
   // ==========================================================================================
   // Global precomputation step if needed by the penalty
   if (mp_Penalty->GlobalPreProcessingStep())
   {
-    Cerr("***** iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep() -> A problem occurred while computing the penalty pre-processing step !" << endl);
+    Cerr("***** iOptimizerADMMLim_new::PreImageUpdateSpecificStep() -> A problem occurred while computing the penalty pre-processing step !" << endl);
     return 1;
   }
   // ==========================================================================================
@@ -847,7 +847,7 @@ int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
           // Local precomputation step if needed by the penalty
           if (mp_Penalty->LocalPreProcessingStep(tbf,rbf,cbf,v,th))
           {
-            Cerr("***** iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep() -> A problem occurred while computing the penalty local pre-processing step for voxel " << v << " !" << endl);
+            Cerr("***** iOptimizerADMMLim_new::PreImageUpdateSpecificStep() -> A problem occurred while computing the penalty local pre-processing step for voxel " << v << " !" << endl);
             problem = true;
           }
           // Compute first derivative order penalty terms
@@ -856,7 +856,7 @@ int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
         // Check for problems
         if (problem)
         {
-          Cerr("***** iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep() -> A problem occurred inside the multi-threaded loop, stop now !" << endl);
+          Cerr("***** iOptimizerADMMLim_new::PreImageUpdateSpecificStep() -> A problem occurred inside the multi-threaded loop, stop now !" << endl);
           return 1;
         }
       }
@@ -892,7 +892,7 @@ int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
 // ---------------------------------------------------------------------
 // =====================================================================
 
-int iOptimizerADMMLim_adaptiveRho::ImageSpaceSpecificOperations( FLTNB a_currentImageValue, FLTNB* ap_newImageValue,
+int iOptimizerADMMLim_new::ImageSpaceSpecificOperations( FLTNB a_currentImageValue, FLTNB* ap_newImageValue,
                                                   FLTNB a_sensitivity, FLTNB* ap_correctionValues,
                                                   INTNB a_voxel, int a_tbf, int a_rbf, int a_cbf )
 {
