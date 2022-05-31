@@ -300,6 +300,18 @@ class oOptimizerManager
     inline void ExitPostProcessLoop()
            {mp_Optimizer->ExitPostProcessLoop();}
     /*!
+      \fn      public inline void oOptimizerManager::DoubleIterationOn()
+      \brief   Set double iteration flag of the vOptimizer to true
+    */
+    inline void DoubleIterationOn()
+           {mp_Optimizer->DoubleIterationOn();}
+    /*!
+      \fn      public inline void oOptimizerManager::DoubleIterationOff()
+      \brief   Set double iteration flag of the vOptimizer to false
+    */
+    inline void DoubleIterationOff()
+           {mp_Optimizer->DoubleIterationOff();}
+    /*!
       \fn      public inline bool oOptimizerManager::NeedPreProcessLoop()
       \brief   Say if the optimizer needs a pre-process loop before iterations are done
       \return  m_needPreProcessLoop from the vOptimizer
@@ -313,6 +325,13 @@ class oOptimizerManager
     */
     inline bool NeedPostProcessLoop()
            {return mp_Optimizer->NeedPostProcessLoop();}
+    /*!
+      \fn      public inline bool oOptimizerManager::NeedDoubleIteration()
+      \brief   Say if the optimizer needs to double its iteration due to the structure of CASToR
+      \return  m_needDoubleIteration from the vOptimizer
+    */
+    inline bool NeedDoubleIteration()
+           {return mp_Optimizer->NeedDoubleIteration();}
     /*!
       \fn      vOptimizer* GetOptimizer()
       \brief   Return the optimizer object

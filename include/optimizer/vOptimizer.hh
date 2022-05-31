@@ -544,7 +544,6 @@ class vOptimizer
     */
     inline void ExitPreProcessLoop()
            {m_isInPreProcessLoop = false;}
-
     /*!
       \fn      public inline void vOptimizer::EnterDualProcessLoop()
       \brief   Set dual-process flag to true
@@ -557,7 +556,6 @@ class vOptimizer
     */
     inline void ExitDualProcessLoop()
            {m_isInDualProcessLoop = false;}
-
     /*!
       \fn      public inline void vOptimizer::EnterPostProcessLoop()
       \brief   Set post-process flag to true
@@ -570,6 +568,18 @@ class vOptimizer
     */
     inline void ExitPostProcessLoop()
            {m_isInPostProcessLoop = false;}
+    /*!
+      \fn      public inline void vOptimizer::DoubleIterationOn()
+      \brief   Set double iteration flag to true
+    */
+    inline void DoubleIterationOn()
+           {m_needDoubleIteration = true;}
+    /*!
+      \fn      public inline void vOptimizer::DoubleIterationOff()
+      \brief   Set double iteration flag to false
+    */
+    inline void DoubleIterationOff()
+           {m_needDoubleIteration = false;}
     /*!
       \fn      public inline bool vOptimizer::NeedPreProcessLoop()
       \brief   Say if the optimizer needs a pre-process loop before iterations are done
@@ -586,7 +596,7 @@ class vOptimizer
            {return m_needPostProcessLoop;}
     /*!
       \fn      public inline bool vOptimizer::NeedDoubleIteration()
-      \brief   Say if the optimizer needs to double it's iteration due to the structure of CASToR
+      \brief   Say if the optimizer needs to double its iteration due to the structure of CASToR
       \return  m_needDoubleIteration
     */
     inline bool NeedDoubleIteration()
@@ -728,7 +738,7 @@ class vOptimizer
     bool m_isInPreProcessLoop;             /*!< Flag specifying if the optimizer is currently under pre-processing loop (before iterations are done) */
     bool m_isInPostProcessLoop;            /*!< Flag specifying if the optimizer is currently under post-processing loop (after iterations are done) */
     bool m_isInDualProcessLoop;            /*!< Flag specifying if the optimizer is currently under dual-processing loop (parallel processing loop)*/
-    bool m_needDoubleIteration;            /*!< Flag specifying if the optimizer needs to double it's iteration due to the structure of CASToR */
+    bool m_needDoubleIteration;            /*!< Flag specifying if the optimizer needs to double its iteration due to the structure of CASToR */
     // Optimizer figures-of-merit computation
     bool m_optimizerFOMFlag;               /*!< A flag saying if figures-of-merit are computed in the data space */
     HPFLTNB**** m4p_FOMLogLikelihood;      /*!< The log-likelihood, as many as frames, respiratory gates, cardiac gates and threads */
