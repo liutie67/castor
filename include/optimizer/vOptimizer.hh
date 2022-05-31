@@ -585,6 +585,13 @@ class vOptimizer
     inline bool NeedPostProcessLoop()
            {return m_needPostProcessLoop;}
     /*!
+      \fn      public inline bool vOptimizer::NeedDoubleIteration()
+      \brief   Say if the optimizer needs to double it's iteration due to the structure of CASToR
+      \return  m_needDoubleIteration
+    */
+    inline bool NeedDoubleIteration()
+           {return m_needDoubleIteration;}
+    /*!
       \fn      public inline int vOptimizer::GetNbBackwardImages()
       \brief   Get the number of backward images used by the specific optimizer
       \return  m_nbBackwardImages
@@ -721,6 +728,7 @@ class vOptimizer
     bool m_isInPreProcessLoop;             /*!< Flag specifying if the optimizer is currently under pre-processing loop (before iterations are done) */
     bool m_isInPostProcessLoop;            /*!< Flag specifying if the optimizer is currently under post-processing loop (after iterations are done) */
     bool m_isInDualProcessLoop;            /*!< Flag specifying if the optimizer is currently under dual-processing loop (parallel processing loop)*/
+    bool m_needDoubleIteration;            /*!< Flag specifying if the optimizer needs to double it's iteration due to the structure of CASToR */
     // Optimizer figures-of-merit computation
     bool m_optimizerFOMFlag;               /*!< A flag saying if figures-of-merit are computed in the data space */
     HPFLTNB**** m4p_FOMLogLikelihood;      /*!< The log-likelihood, as many as frames, respiratory gates, cardiac gates and threads */
