@@ -740,7 +740,7 @@ int iOptimizerADMMLim_adaptiveRho::DataStep6Optional( oProjectionLine* ap_Line, 
 
           m_adaptiveAlpha = m_alpha;
       }
-      m_adaptiveAlpha = m_alpha;  // do not change alpha
+      // m_adaptiveAlpha = m_alpha;  // do not change alpha
 
       // get the path
       sOutputManager* p_outputManager = sOutputManager::GetInstance();
