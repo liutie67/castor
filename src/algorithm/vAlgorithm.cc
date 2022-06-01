@@ -138,7 +138,15 @@ int vAlgorithm::SetOutputIterations(const string& a_outputIterations)
   // If the list is empty, we save all iterations by default
   if (a_outputIterations=="")
   {
-    for (int it=0; it<m_nbIterations; it++) mp_outputIterations[it] = true;
+    // If double iteration is needed, then only save image every 2 iteration, beginning at the second iteration
+    if (mp_OptimizerManager->NeedDoubleIteration())
+    {
+      for (int it=1; it<m_nbIterations; it=it+2) mp_outputIterations[it] = true;
+    }else
+    {
+      for (int it=0; it<m_nbIterations; it++) mp_outputIterations[it] = true;
+    }
+    
     return 0;
   }
 
