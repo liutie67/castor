@@ -481,6 +481,7 @@ int iIterativeAlgorithm::StepPostProcessInsideSubsetLoop(int a_iteration, int a_
     // Verbose
     if (m_verbose>=1) Cout("iIterativeAlgorithm::StepPostProcessInsideSubsetLoop() -> Save image at iteration " << a_iteration+1 << " for subset " << a_subset+1 << endl);
     // Save image
+    if (mp_OptimizerManager->NeedDoubleIteration()) a_iteration/=2;
     if (StepImageOutput(a_iteration,a_subset))
     {
       Cerr("***** iIterativeAlgorithm::StepPostProcessInsideSubsetLoop() -> A problem occurred while saving images at iteration " << a_iteration+1 << " !" << endl);
@@ -508,6 +509,7 @@ int iIterativeAlgorithm::StepAfterSubsetLoop(int a_iteration)
     // Verbose
     if (m_verbose>=1) Cout("iIterativeAlgorithm::StepAfterSubsetLoop() -> Save image at iteration " << a_iteration+1 << endl);
     // Save image
+    if (mp_OptimizerManager->NeedDoubleIteration()) a_iteration/=2;
     if (StepImageOutput(a_iteration))
     {
       Cerr("***** iIterativeAlgorithm::StepAfterSubsetLoop() -> A problem occurred while saving images at iteration " << a_iteration+1 << " !" << endl);
