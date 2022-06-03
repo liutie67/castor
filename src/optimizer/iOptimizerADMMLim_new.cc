@@ -45,7 +45,8 @@ iOptimizerADMMLim_new::iOptimizerADMMLim_new() : vOptimizer()
   // Initial value at 1
   m_initialValue = 1.;
   // Only one backward image for ADMMLim
-  m_nbBackwardImages = 1;
+  // Two backward images for adaptive ADMMLim
+  m_nbBackwardImages = 2;
   // ADMMLim accepts penalties
   m_requiredPenaltyDerivativesOrder = 1;
   // ADMMLim is compatible with listmode and histogram data (not yet)
@@ -569,7 +570,7 @@ int iOptimizerADMMLim_new::DataStep5ComputeCorrections( oProjectionLine* ap_Line
 
     m_AxProduct[a_th] = (HPFLTNB)m2p_forwardValues[a_th][b] - (HPFLTNB)a_additiveCorrections;
     // Backward project (Ax - v^k + u^k), a_forwardModel is Ax here because we have overwritten the Forward Projection computation in this optimizer
-    *ap_backwardValues = m_AxProduct[a_th] - (HPFLTNB)m_vk[a_th] + (HPFLTNB)m_uk[a_th];
+    ap_backwardValues[0] = m_AxProduct[a_th] - (HPFLTNB)m_vk[a_th] + (HPFLTNB)m_uk[a_th];
 
     // save Ax at the k-th iteration for dual residual calculation
     if (m_currentIteration == 1)  // as the double iteration problem in castor, '1' is the first working iteration
@@ -618,7 +619,7 @@ int iOptimizerADMMLim_new::DataStep6Optional( oProjectionLine* ap_Line, vEvent* 
     FLTNB beta = 0.5 * (1 / m_alpha + m_rBackgroundEvents[a_th] - m_uk[a_th] - (FLTNB)m_AxProduct[a_th]);
     FLTNB gamma = m_rBackgroundEvents[a_th] * (m_uk[a_th] + (FLTNB)m_AxProduct[a_th]) - (m_rBackgroundEvents[a_th] - m_yData[a_th]) / m_alpha;
     FLTNB v_hat = 0.;
-    FLTNB primalMax = 0.;
+    // FLTNB primalMax = 0.;
 
     // Compute v_hat solution given the value of y
     if (m_yData[a_th] == 0.) 
@@ -662,122 +663,19 @@ int iOptimizerADMMLim_new::DataStep6Optional( oProjectionLine* ap_Line, vEvent* 
       mp_toWrite_uk[ap_Line->GetEventIndex()] = m_uk[a_th] + (FLTNB)m_AxProduct[a_th] - m_vk[a_th];
     }
 
+    /*
     if (m_isInDualProcessLoop)
     {
       // calculation for adaptive alpha and tau
       BackwardProject(ap_Line, mp_vectorAtu, mp_toWrite_uk[ap_Line->GetEventIndex()]);
       BackwardProject(ap_Line, mp_vectorAtvv, mp_toWrite_vk[ap_Line->GetEventIndex()] - m_previous_v[a_th]);
     }
-
+    */
     ////////////// relative residuals computation //////////////
     // mp_vectorV[ap_Line->GetEventIndex()] = m_vk[a_th];
     // mp_vectorU[ap_Line->GetEventIndex()] = mp_toWrite_uk[ap_Line->GetEventIndex()];
     // mp_PrimalResidual[ap_Line->GetEventIndex()] = mp_vectorAx[ap_Line->GetEventIndex()] - mp_vectorV[ap_Line->GetEventIndex()];
     // mp_DualResidual[ap_Line->GetEventIndex()] = mp_previousAx[ap_Line->GetEventIndex()] - mp_vectorAx[ap_Line->GetEventIndex()];
-
-    if ((ap_Line->GetEventIndex() == mp_DataFile->GetSinogramSize()-1)&&m_isInDualProcessLoop)  // after all the events in one iteration
-    {
-      FLTNB square_sum_Atu = 0.;
-      FLTNB square_sum_Atvv = 0.;
-      // calculate the square sum of Atu and Atvv
-      for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
-      {
-        square_sum_Atu += mp_vectorAtu[v]*mp_vectorAtu[v];
-        square_sum_Atvv += mp_vectorAtvv[v]*mp_vectorAtvv[v];
-      }
-      m_square_sum_dual = square_sum_Atvv / square_sum_Atu;
-
-      // calculate the square sum of Ax, v and u at (k+1)th iteration
-      for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
-      {
-          m_square_sum_Ax += mp_vectorAx[lor]*mp_vectorAx[lor];
-          m_square_sum_v += mp_toWrite_vk[lor]*mp_toWrite_vk[lor];
-          // m_square_sum_u += mp_toWrite_uk[lor]*mp_toWrite_uk[lor];
-      }
-
-      // find the bigger one between Ax(k+1) and v(k+1)
-      primalMax = (m_square_sum_Ax > m_square_sum_v) ? m_square_sum_Ax:m_square_sum_v;
-
-      // to prevent calculation sqrt in every iteration
-      primalMax = sqrt(primalMax);
-      // m_square_sum_u = sqrt(m_square_sum_u);
-      // calculate relative residuals
-      for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
-      {
-          mp_relPrimalResidual[lor] = (mp_vectorAx[lor] - mp_toWrite_vk[lor])/ primalMax;
-          // mp_relDualResidual[lor] = (mp_previousAx[lor] - mp_vectorAx[lor]) / m_square_sum_u;
-      }
-
-      // calculate the norm of relative residuals
-      for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
-      {
-          m_square_sum_primal += mp_relPrimalResidual[lor]*mp_relPrimalResidual[lor];
-          // m_square_sum_dual += mp_relDualResidual[lor]*mp_relDualResidual[lor];
-      }
-
-      // implement the adaptive formulation of tau
-      // m_adaptiveTau = sqrt((1/m_xi)*(sqrt(m_square_sum_primal)*primalMax)/ (sqrt(m_square_sum_dual)*m_square_sum_u*m_alpha));
-      m_adaptiveTau = sqrt((1/m_xi)*sqrt(m_square_sum_primal)/ sqrt(m_square_sum_dual));
-      if (m_adaptiveTau >= 1 && m_adaptiveTau < m_tau )
-      {
-          ;
-      }else if (m_adaptiveTau >= (1/m_tau) && m_adaptiveTau < 1)
-      {
-          m_adaptiveTau = 1/m_adaptiveTau;
-      } else
-      {
-          m_adaptiveTau = m_tau;
-      }
-      // m_adaptiveTau = m_tau;  // do not change tau
-
-      // implement the adaptive formulation of alpha(rho)
-      if (sqrt(m_square_sum_primal) > m_xi*m_mu*sqrt(m_square_sum_dual))
-      {
-          m_adaptiveAlpha = m_alpha*m_adaptiveTau;  // here is the difference of adaptive tau or not
-      }
-      else if (sqrt(m_square_sum_dual) > (1/m_xi)*m_mu*sqrt(m_square_sum_primal))
-      {
-          m_adaptiveAlpha = m_alpha/m_adaptiveTau;  // here is the difference of adaptive tau or not
-      } else
-      {
-
-          m_adaptiveAlpha = m_alpha;
-      }
-      m_adaptiveAlpha = m_alpha;  // do not change alpha
-
-      // get the path
-      sOutputManager* p_outputManager = sOutputManager::GetInstance();
-      string temps_ss_alpha;
-      temps_ss_alpha = p_outputManager->GetPathName() + p_outputManager->GetBaseName();
-
-      // print both alpha and the obtained adaptive alpha for next iteration
-      temps_ss_alpha +=  "_adaptive.log";
-      ofstream outfile;
-      outfile.open(temps_ss_alpha);
-      outfile << "adaptive alpha : " << endl;
-      outfile << m_adaptiveAlpha << endl;
-
-      outfile << "adaptive tau" << endl;
-      outfile << m_adaptiveTau << endl;
-
-      outfile << "alpha" << endl;
-      outfile << m_alpha << endl;
-
-      outfile << "relPrimal" << endl;
-      outfile << sqrt(m_square_sum_primal) << endl;
-
-      outfile << "relDual" << endl;
-      outfile << sqrt(m_square_sum_dual) << endl;
-
-      outfile << endl;
-      outfile << "relPrimal      : " << sqrt(m_square_sum_primal) << endl;
-      outfile << "relDual        : " << sqrt(m_square_sum_dual) << endl;
-      outfile << "adaptive tau   : " << m_adaptiveTau << endl;
-      outfile << "alpha          : " << m_alpha << endl;
-      outfile << "adaptive alpha : " << m_adaptiveAlpha << endl;
-
-      outfile.close();
-    }
 
   }
 
@@ -805,6 +703,113 @@ int iOptimizerADMMLim_new::DataSpaceSpecificOperations( FLTNB a_data, FLTNB a_fo
 
 int iOptimizerADMMLim_new::PreImageUpdateSpecificStep()
 {
+  /*
+  if (m_isInDualProcessLoop)  // only 
+  {
+    FLTNB square_sum_Atu = 0.;
+    FLTNB square_sum_Atvv = 0.;
+    // calculate the square sum of Atu and Atvv
+    for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
+    {
+      square_sum_Atu += mp_vectorAtu[v]*mp_vectorAtu[v];
+      square_sum_Atvv += mp_vectorAtvv[v]*mp_vectorAtvv[v];
+    }
+    m_square_sum_dual = square_sum_Atvv / square_sum_Atu;
+
+    // calculate the square sum of Ax, v and u at (k+1)th iteration
+    for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
+    {
+        m_square_sum_Ax += mp_vectorAx[lor]*mp_vectorAx[lor];
+        m_square_sum_v += mp_toWrite_vk[lor]*mp_toWrite_vk[lor];
+        // m_square_sum_u += mp_toWrite_uk[lor]*mp_toWrite_uk[lor];
+    }
+
+    FLTNB primalMax = -1;
+    // find the bigger one between Ax(k+1) and v(k+1)
+    primalMax = (m_square_sum_Ax > m_square_sum_v) ? m_square_sum_Ax:m_square_sum_v;
+
+    // to prevent calculation sqrt in every iteration
+    primalMax = sqrt(primalMax);
+    // m_square_sum_u = sqrt(m_square_sum_u);
+    // calculate relative residuals
+    for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
+    {
+        mp_relPrimalResidual[lor] = (mp_vectorAx[lor] - mp_toWrite_vk[lor])/ primalMax;
+        // mp_relDualResidual[lor] = (mp_previousAx[lor] - mp_vectorAx[lor]) / m_square_sum_u;
+    }
+
+    // calculate the norm of relative residuals
+    for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
+    {
+        m_square_sum_primal += mp_relPrimalResidual[lor]*mp_relPrimalResidual[lor];
+        // m_square_sum_dual += mp_relDualResidual[lor]*mp_relDualResidual[lor];
+    }
+
+    // implement the adaptive formulation of tau
+    // m_adaptiveTau = sqrt((1/m_xi)*(sqrt(m_square_sum_primal)*primalMax)/ (sqrt(m_square_sum_dual)*m_square_sum_u*m_alpha));
+    m_adaptiveTau = sqrt((1/m_xi)*sqrt(m_square_sum_primal)/ sqrt(m_square_sum_dual));
+    if (m_adaptiveTau >= 1 && m_adaptiveTau < m_tau )
+    {
+        ;
+    }else if (m_adaptiveTau >= (1/m_tau) && m_adaptiveTau < 1)
+    {
+        m_adaptiveTau = 1/m_adaptiveTau;
+    } else
+    {
+        m_adaptiveTau = m_tau;
+    }
+    // m_adaptiveTau = m_tau;  // do not change tau
+
+    // implement the adaptive formulation of alpha(rho)
+    if (sqrt(m_square_sum_primal) > m_xi*m_mu*sqrt(m_square_sum_dual))
+    {
+        m_adaptiveAlpha = m_alpha*m_adaptiveTau;  // here is the difference of adaptive tau or not
+    }
+    else if (sqrt(m_square_sum_dual) > (1/m_xi)*m_mu*sqrt(m_square_sum_primal))
+    {
+        m_adaptiveAlpha = m_alpha/m_adaptiveTau;  // here is the difference of adaptive tau or not
+    } else
+    {
+
+        m_adaptiveAlpha = m_alpha;
+    }
+    m_adaptiveAlpha = m_alpha;  // do not change alpha
+
+    // get the path
+    sOutputManager* p_outputManager = sOutputManager::GetInstance();
+    string temps_ss_alpha;
+    temps_ss_alpha = p_outputManager->GetPathName() + p_outputManager->GetBaseName();
+
+    // print both alpha and the obtained adaptive alpha for next iteration
+    temps_ss_alpha +=  "_adaptive.log";
+    ofstream outfile;
+    outfile.open(temps_ss_alpha);
+    outfile << "adaptive alpha : " << endl;
+    outfile << m_adaptiveAlpha << endl;
+
+    outfile << "adaptive tau" << endl;
+    outfile << m_adaptiveTau << endl;
+
+    outfile << "alpha" << endl;
+    outfile << m_alpha << endl;
+
+    outfile << "relPrimal" << endl;
+    outfile << sqrt(m_square_sum_primal) << endl;
+
+    outfile << "relDual" << endl;
+    outfile << sqrt(m_square_sum_dual) << endl;
+
+    outfile << endl;
+    outfile << "relPrimal      : " << sqrt(m_square_sum_primal) << endl;
+    outfile << "relDual        : " << sqrt(m_square_sum_dual) << endl;
+    outfile << "adaptive tau   : " << m_adaptiveTau << endl;
+    outfile << "alpha          : " << m_alpha << endl;
+    outfile << "adaptive alpha : " << m_adaptiveAlpha << endl;
+
+    outfile.close();
+  }
+  */
+
   // ==========================================================================================
   // If no penalty, then exit (the penalty image term has been initialized to 0)
   if (mp_Penalty==NULL) return 0;
@@ -863,24 +868,21 @@ int iOptimizerADMMLim_new::PreImageUpdateSpecificStep()
     }
   }
 
-  if (m_isInDualProcessLoop)
+  // Zero norm of gradient projection and norm of gradient projection for this iteration
+  m_grad_norm_sum = 0.;
+  m_proj_grad_norm_sum = 0.;
+  // Compute norms using values from all threads
+  for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
   {
-    // Zero norm of gradient projection and norm of gradient projection for this iteration
-    m_grad_norm_sum = 0.;
-    m_proj_grad_norm_sum = 0.;
-    // Compute norms using values from all threads
-    for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
-    {
-      m_proj_grad_norm_sum += m_proj_grad_before[lor]; // already squared
-      // Zero the gradient projection for this LOR
-      m_proj_grad_before[lor] = 0.;
-    }
-    for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
-    {
-      m_grad_norm_sum += (HPFLTNB)m_grad_before[v]*(HPFLTNB)m_grad_before[v];
-      // Zero the gradient for this voxel
-      m_grad_before[v] = 0.;
-    }
+    m_proj_grad_norm_sum += m_proj_grad_before[lor]; // already squared
+    // Zero the gradient projection for this LOR
+    m_proj_grad_before[lor] = 0.;
+  }
+  for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
+  {
+    m_grad_norm_sum += (HPFLTNB)m_grad_before[v]*(HPFLTNB)m_grad_before[v];
+    // Zero the gradient for this voxel
+    m_grad_before[v] = 0.;
   }
 
   // Normal end  
@@ -923,6 +925,7 @@ int iOptimizerADMMLim_new::ImageSpaceSpecificOperations( FLTNB a_currentImageVal
 
     // Update image value and store it
     *ap_newImageValue = (HPFLTNB)a_currentImageValue + additive_image_update_factor;
+    // dirty 1 : at the end, set this to the gradient
   }
 
   // End
