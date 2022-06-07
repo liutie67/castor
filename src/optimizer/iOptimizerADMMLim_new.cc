@@ -46,7 +46,7 @@ iOptimizerADMMLim_new::iOptimizerADMMLim_new() : vOptimizer()
   m_initialValue = 1.;
   // Only one backward image for ADMMLim
   // Two backward images for adaptive ADMMLim
-  m_nbBackwardImages = 2;
+  m_nbBackwardImages = 3;
   // ADMMLim accepts penalties
   m_requiredPenaltyDerivativesOrder = 1;
   // ADMMLim is compatible with listmode and histogram data (not yet)
@@ -84,14 +84,9 @@ iOptimizerADMMLim_new::iOptimizerADMMLim_new() : vOptimizer()
   m_vk = NULL;
 
   // added variables for adaptive rho
-  mp_previousAx = NULL;
   mp_relPrimalResidual = NULL;
   mp_relDualResidual = NULL;
-  // mp_PrimalResidual = NULL;
-  // mp_DualResidual = NULL;
   mp_vectorAx = NULL;
-  // mp_vectorV = NULL;
-  // mp_vectorU = NULL;
 
   mp_vectorAtu = NULL;
   mp_vectorAtvv = NULL;
@@ -199,10 +194,6 @@ iOptimizerADMMLim_new::~iOptimizerADMMLim_new()
   }
 
   // deallocate the memory space of adaptive rho/alpha variables
-  if (mp_previousAx)
-  {
-    free(mp_previousAx);
-  }
   if (mp_vectorAx)
   {
     free(mp_vectorAx);
@@ -428,27 +419,15 @@ int iOptimizerADMMLim_new::InitializeSpecific()
   }
 
   // Allocate added pointers for adaptive rho
-  mp_previousAx = (FLTNB*)malloc(mp_DataFile->GetSinogramSize()*sizeof(FLTNB));
   mp_vectorAx = (FLTNB*)malloc(mp_DataFile->GetSinogramSize()*sizeof(FLTNB));
-  // mp_vectorV = (FLTNB*)malloc(mp_DataFile->GetSinogramSize()*sizeof(FLTNB));
-  // mp_vectorU = (FLTNB*)malloc(mp_DataFile->GetSinogramSize()*sizeof(FLTNB));
   mp_relPrimalResidual = (FLTNB*)malloc(mp_DataFile->GetSinogramSize()*sizeof(FLTNB));
   mp_relDualResidual = (FLTNB*)malloc(mp_DataFile->GetSinogramSize()*sizeof(FLTNB));
-  // mp_PrimalResidual = (FLTNB*)malloc(mp_DataFile->GetSinogramSize()*sizeof(FLTNB));
-  // mp_DualResidual = (FLTNB*)malloc(mp_DataFile->GetSinogramSize()*sizeof(FLTNB));
   // Loop and initialize
   for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
   {
-      mp_previousAx[lor] = 0.;
       mp_vectorAx[lor] = 0.;
-      // mp_vectorV[lor] = 0.;
-      // mp_vectorU[lor] = 0.;
       mp_relPrimalResidual[lor] = 0.;
       mp_relDualResidual[lor] = 0.;
-      // mp_PrimalResidual[lor] = 0.;
-      // mp_DualResidual[lor] = 0.;
-      // mp_previous_v[lor] = 0.;
-
   }
   /*
   for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
@@ -565,19 +544,12 @@ int iOptimizerADMMLim_new::DataStep5ComputeCorrections( oProjectionLine* ap_Line
   // Loop on TOF bins
   for (int b=0; b<ap_Line->GetNbTOFBins(); b++)
   {
-    FLTNB* ap_backwardValues = m3p_backwardValues[a_th][b];                              // the backward values (the result)
+    // FLTNB* ap_backwardValues = m3p_backwardValues[a_th][b];                              // the backward values (the result)
     FLTNB a_additiveCorrections = ap_Event->GetAdditiveCorrections(b)*mp_ImageDimensionsAndQuantification->GetFrameDurationInSec(a_bed, a_timeFrame); // the additive corrections
 
     m_AxProduct[a_th] = (HPFLTNB)m2p_forwardValues[a_th][b] - (HPFLTNB)a_additiveCorrections;
     // Backward project (Ax - v^k + u^k), a_forwardModel is Ax here because we have overwritten the Forward Projection computation in this optimizer
-    ap_backwardValues[0] = m_AxProduct[a_th] - (HPFLTNB)m_vk[a_th] + (HPFLTNB)m_uk[a_th];
-
-    // save Ax at the k-th iteration for dual residual calculation
-    if (m_currentIteration == 1)  // as the double iteration problem in castor, '1' is the first working iteration
-    {
-        mp_previousAx[ap_Line->GetEventIndex()] = m_AxProduct[a_th];
-    }
-
+    m3p_backwardValues[a_th][b][0] = m_AxProduct[a_th] - (HPFLTNB)m_vk[a_th] + (HPFLTNB)m_uk[a_th];
 
     if (m_isInPostProcessLoop)
     {
@@ -606,6 +578,7 @@ int iOptimizerADMMLim_new::DataStep6Optional( oProjectionLine* ap_Line, vEvent* 
   // Store norm of projection of gradient for next iteration (for stepsize in x computation)
   HPFLTNB proj_grad = (HPFLTNB)ForwardProject(ap_Line,m_grad_before);
   m_proj_grad_before[ap_Line->GetEventIndex()] += proj_grad * proj_grad;
+
 
   // Compute v and u as it is only one iteration after all iterations on x
   if (m_isInPostProcessLoop)
@@ -671,11 +644,9 @@ int iOptimizerADMMLim_new::DataStep6Optional( oProjectionLine* ap_Line, vEvent* 
       BackwardProject(ap_Line, mp_vectorAtvv, mp_toWrite_vk[ap_Line->GetEventIndex()] - m_previous_v[a_th]);
     }
     */
-    ////////////// relative residuals computation //////////////
-    // mp_vectorV[ap_Line->GetEventIndex()] = m_vk[a_th];
-    // mp_vectorU[ap_Line->GetEventIndex()] = mp_toWrite_uk[ap_Line->GetEventIndex()];
-    // mp_PrimalResidual[ap_Line->GetEventIndex()] = mp_vectorAx[ap_Line->GetEventIndex()] - mp_vectorV[ap_Line->GetEventIndex()];
-    // mp_DualResidual[ap_Line->GetEventIndex()] = mp_previousAx[ap_Line->GetEventIndex()] - mp_vectorAx[ap_Line->GetEventIndex()];
+    int no_TOF_bin = 0;
+    m3p_backwardValues[a_th][no_TOF_bin][1] = mp_toWrite_uk[ap_Line->GetEventIndex()];
+    m3p_backwardValues[a_th][no_TOF_bin][2] = mp_toWrite_vk[ap_Line->GetEventIndex()] - m_previous_v[a_th];
 
   }
 
@@ -703,16 +674,22 @@ int iOptimizerADMMLim_new::DataSpaceSpecificOperations( FLTNB a_data, FLTNB a_fo
 
 int iOptimizerADMMLim_new::PreImageUpdateSpecificStep()
 {
-  /*
-  if (m_isInDualProcessLoop)  // only 
+  if (m_isInPostProcessLoop)  // only 
   {
     FLTNB square_sum_Atu = 0.;
     FLTNB square_sum_Atvv = 0.;
+
+    int no_thread = 0;
+    int no_trc_bf = 0;
     // calculate the square sum of Atu and Atvv
     for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
     {
-      square_sum_Atu += mp_vectorAtu[v]*mp_vectorAtu[v];
-      square_sum_Atvv += mp_vectorAtvv[v]*mp_vectorAtvv[v];
+      square_sum_Atu += mp_ImageSpace->m6p_backwardImage[1][no_thread][no_trc_bf][no_trc_bf][no_trc_bf][v]*mp_ImageSpace->m6p_backwardImage[1][no_thread][no_trc_bf][no_trc_bf][no_trc_bf][v];
+      square_sum_Atvv += mp_ImageSpace->m6p_backwardImage[2][no_thread][no_trc_bf][no_trc_bf][no_trc_bf][v]*mp_ImageSpace->m6p_backwardImage[2][no_thread][no_trc_bf][no_trc_bf][no_trc_bf][v];
+      // m3p_backwardValues[no_thread][no_trc_bf][1][v]*m3p_backwardValues[no_thread][no_trc_bf][1][v];
+      // square_sum_Atu += mp_vectorAtu[v]*mp_vectorAtu[v];
+      // square_sum_Atvv += mp_vectorAtvv[v]*mp_vectorAtvv[v];
+    
     }
     m_square_sum_dual = square_sum_Atvv / square_sum_Atu;
 
@@ -808,7 +785,6 @@ int iOptimizerADMMLim_new::PreImageUpdateSpecificStep()
 
     outfile.close();
   }
-  */
 
   // ==========================================================================================
   // If no penalty, then exit (the penalty image term has been initialized to 0)
@@ -899,9 +875,9 @@ int iOptimizerADMMLim_new::ImageSpaceSpecificOperations( FLTNB a_currentImageVal
                                                   INTNB a_voxel, int a_tbf, int a_rbf, int a_cbf )
 {
   // Store gradient for next iteration
-  m_grad_before[a_voxel] = *ap_correctionValues;
+  m_grad_before[a_voxel] = ap_correctionValues[0];
   if ((!m_isInPostProcessLoop)&&m_isInDualProcessLoop) // Do x computation
-  {
+  { 
     ////////////// Update with preconditioned gradient descent //////////////  
     // Scale penalty with respect to the number of subsets to get correct balance between likelihood and penalty
     HPFLTNB penalty = ((HPFLTNB)(m4p_firstDerivativePenaltyImage[a_tbf][a_rbf][a_cbf][a_voxel])) / ((HPFLTNB)(mp_nbSubsets[m_currentIteration]));

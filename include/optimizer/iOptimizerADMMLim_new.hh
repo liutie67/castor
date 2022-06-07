@@ -238,18 +238,16 @@ class iOptimizerADMMLim_new : public vOptimizer
     HPFLTNB* m_proj_grad_before;                   /*!< Projection of gradient vector in conjugate gradient for each lor, to be stored for next x computation */
 
     // added variables for adaptive Rho
-    FLTNB* mp_previousAx;
     FLTNB* mp_relPrimalResidual;
     FLTNB* mp_relDualResidual;
-    // FLTNB* mp_PrimalResidual;
-    // FLTNB* mp_DualResidual;
     FLTNB* mp_vectorAx;
-    // FLTNB* mp_vectorV;
-    // FLTNB* mp_vectorU;
 
     FLTNB* mp_vectorAtu;
     FLTNB* mp_vectorAtvv;
     FLTNB* m_previous_v;
+
+    // temporaire variables
+    FLTNB* m_v1;
 
     FLTNB m_square_sum_Ax;
     FLTNB m_square_sum_v;
