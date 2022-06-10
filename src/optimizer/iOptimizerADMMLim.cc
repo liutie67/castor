@@ -592,6 +592,27 @@ int iOptimizerADMMLim::PreImageUpdateSpecificStep()
   }
   for (int v=0; v<mp_ImageDimensionsAndQuantification->GetNbVoxXYZ(); v++)
   {
+    if (m_currentIteration==47)  // which inner iteration to output the gradient
+    {
+      // get the path
+      sOutputManager* p_outputManager = sOutputManager::GetInstance();
+      string temps_ss_alpha;
+      temps_ss_alpha = p_outputManager->GetPathName() + p_outputManager->GetBaseName();
+      // temps_ss_alpha += "_" + to_string(a_voxel);
+
+      temps_ss_alpha +=  "_grad_before.log";
+      fstream outfile;
+      outfile.open(temps_ss_alpha, ios::app);
+
+      outfile << "  m_grad_before(" << setw(5) << v << ") = ";
+      outfile << setw(20) << m_grad_before[v];
+
+      outfile << endl;
+
+      outfile.close();
+    }
+    
+
     m_grad_norm_sum += (HPFLTNB)m_grad_before[v]*(HPFLTNB)m_grad_before[v];
     // Zero the gradient for this voxel
     m_grad_before[v] = 0.;
