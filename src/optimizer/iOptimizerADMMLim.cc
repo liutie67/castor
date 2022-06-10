@@ -411,6 +411,12 @@ int iOptimizerADMMLim::DataStep5ComputeCorrections( oProjectionLine* ap_Line, vE
       // We need the data and background events without backprojection after, so store them in m_yData and m_rBackgroundEvents
       m_yData[a_th] = (FLTNB)ap_Event->GetEventValue(b);
       m_rBackgroundEvents[a_th] = (FLTNB)ap_Event->GetAdditiveCorrections(b)*mp_ImageDimensionsAndQuantification->GetFrameDurationInSec(a_bed, a_timeFrame);
+      if (ap_Line->GetEventIndex()%1000==0)
+      {
+        cout << "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*444444444444444444444444-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
+      }
+      
+
     }
   }
   
@@ -484,6 +490,11 @@ int iOptimizerADMMLim::DataStep6Optional( oProjectionLine* ap_Line, vEvent* ap_E
     else // update image (u^{k+1} := u^k + Ax^{k+1} - v^{k+1}) and store it
     {
       mp_toWrite_uk[ap_Line->GetEventIndex()] = m_uk[a_th] + (FLTNB)m_AxProduct[a_th] - m_vk[a_th];
+    }
+    
+    if (ap_Line->GetEventIndex()%1000==0)
+    {
+      cout << "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*555555555555555555555555-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
     }
   }
 
@@ -608,6 +619,48 @@ int iOptimizerADMMLim::ImageSpaceSpecificOperations( FLTNB a_currentImageValue, 
     HPFLTNB penalty = ((HPFLTNB)(m4p_firstDerivativePenaltyImage[a_tbf][a_rbf][a_cbf][a_voxel])) / ((HPFLTNB)(mp_nbSubsets[m_currentIteration]));
     // Compute conjugate gradient best stepsize after line search using norms from previous iteration
     HPFLTNB stepsize = m_grad_norm_sum / (((HPFLTNB)m_alpha * m_proj_grad_norm_sum) + (mp_Penalty->GetPenaltyStrength()*m_grad_norm_sum));
+    
+    if (a_voxel==5)
+    {
+      // get the path
+    sOutputManager* p_outputManager = sOutputManager::GetInstance();
+    string temps_ss_alpha;
+    temps_ss_alpha = p_outputManager->GetPathName() + p_outputManager->GetBaseName();
+    // temps_ss_alpha += "_" + to_string(a_voxel);
+
+    temps_ss_alpha +=  "_stepsize.log";
+    fstream outfile;
+    outfile.open(temps_ss_alpha, ios::app);
+    // outfile.setf(ios::scientific);
+    // outfile.width(10);
+
+    outfile << "m_currentIteration : ";
+    outfile << setw(3) << m_currentIteration;
+
+    outfile << "  a_voxel : ";
+    outfile << setw(3) << a_voxel;
+
+    outfile << "  m_grad_norm_sum : ";
+    outfile << setw(20) << m_grad_norm_sum;
+
+    outfile << "  m_proj_grad_norm_sum : ";
+    outfile << setw(20) << m_proj_grad_norm_sum;
+
+    outfile << "  alpha : ";
+    outfile << setw(6) << m_alpha;
+
+    // outfile << "  mp_Penalty->GetPenaltyStrength() : ";
+    // outfile << setw(4) << mp_Penalty->GetPenaltyStrength();
+
+    outfile << "  stepsize : ";
+    outfile << setw(20) << stepsize;
+
+    outfile << endl;
+
+    outfile.close();
+    }
+
+    // stepsize = 100.;
 
     // Compute additive image update factor
     HPFLTNB gradient = -(HPFLTNB)m_alpha * (HPFLTNB)*ap_correctionValues + penalty;
@@ -615,6 +668,7 @@ int iOptimizerADMMLim::ImageSpaceSpecificOperations( FLTNB a_currentImageValue, 
 
     // Update image value and store it
     *ap_newImageValue = (HPFLTNB)a_currentImageValue + additive_image_update_factor;
+    // cout << "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*6666666666666666666666-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
   }
 
   // End
