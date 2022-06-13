@@ -405,6 +405,29 @@ int iOptimizerADMMLim::DataStep5ComputeCorrections( oProjectionLine* ap_Line, vE
     m_AxProduct[a_th] = (HPFLTNB)m2p_forwardValues[a_th][b] - (HPFLTNB)a_additiveCorrections;
     // Backward project (Ax - v^k + u^k), a_forwardModel is Ax here because we have overwritten the Forward Projection computation in this optimizer
     *ap_backwardValues = m_AxProduct[a_th] - (HPFLTNB)m_vk[a_th] + (HPFLTNB)m_uk[a_th];
+    if (b==0&&(ap_Event->GetEventIndex()<100))
+    {
+      // get the path
+      sOutputManager* p_outputManager = sOutputManager::GetInstance();
+      string temps_ss_alpha;
+      temps_ss_alpha = p_outputManager->GetPathName() + p_outputManager->GetBaseName();
+      // temps_ss_alpha += "_" + to_string(a_voxel);
+
+      temps_ss_alpha +=  "_ap_backwardValues.log";
+      fstream outfile;
+      outfile.open(temps_ss_alpha, ios::app);
+
+      outfile << "  CurrentIteration = " << setw(3) << m_currentIteration;
+
+      outfile << "  EventIndex = " << setw(6) << ap_Event->GetEventIndex();
+
+      outfile << "  bin = " << setw(2) << b << " a_th = " << setw(3) << a_th;
+      outfile << "  *ap_backwardValues = " << setw(20) << *ap_backwardValues;
+
+      outfile << endl;
+
+      outfile.close();
+    }
   
     if (m_isInPostProcessLoop)
     {
