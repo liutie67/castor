@@ -405,7 +405,7 @@ int iOptimizerADMMLim::DataStep5ComputeCorrections( oProjectionLine* ap_Line, vE
     m_AxProduct[a_th] = (HPFLTNB)m2p_forwardValues[a_th][b] - (HPFLTNB)a_additiveCorrections;
     // Backward project (Ax - v^k + u^k), a_forwardModel is Ax here because we have overwritten the Forward Projection computation in this optimizer
     *ap_backwardValues = m_AxProduct[a_th] - (HPFLTNB)m_vk[a_th] + (HPFLTNB)m_uk[a_th];
-    if (b==0&&(ap_Event->GetEventIndex()<100))
+    if (b==0&&(ap_Event->GetEventIndex()%1000==0))
     {
       // get the path
       sOutputManager* p_outputManager = sOutputManager::GetInstance();
@@ -417,12 +417,24 @@ int iOptimizerADMMLim::DataStep5ComputeCorrections( oProjectionLine* ap_Line, vE
       fstream outfile;
       outfile.open(temps_ss_alpha, ios::app);
 
-      outfile << "  CurrentIteration = " << setw(3) << m_currentIteration;
+      outfile << "  crIter = " << setw(3) << m_currentIteration; // current iteration
 
-      outfile << "  EventIndex = " << setw(6) << ap_Event->GetEventIndex();
+      outfile << "  eIndex = " << setw(6) << ap_Event->GetEventIndex();
 
       outfile << "  bin = " << setw(2) << b << " a_th = " << setw(3) << a_th;
-      outfile << "  *ap_backwardValues = " << setw(20) << *ap_backwardValues;
+
+      outfile << "  bwValue = " << setw(12) << *ap_backwardValues;
+
+      outfile << "  AxProduct = " << setw(12) << m_AxProduct[a_th];
+
+      outfile << "  vk = " << setw(12) << m_vk[a_th];
+
+      outfile << "  uk = " << setw(12) << m_uk[a_th];
+
+      outfile << "  m2p_forwardValues = " << setw(12) << m2p_forwardValues[a_th][b];
+
+      outfile << "  a_additiveCorrections = " << setw(12) << a_additiveCorrections;
+
 
       outfile << endl;
 
