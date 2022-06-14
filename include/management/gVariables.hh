@@ -58,7 +58,7 @@ using namespace std;
 /** Define the precision for main program implementation (matrices, most computations, output images) */
 #define FLTNB     double
 /** Define high precision for computations where at least the double precision is required */
-#define HPFLTNB   double
+#define HPFLTNB   long double
 /** Define the precision of the program implementation (for matrices and computations), specific to MPI operations */
 #define FLTNBMPI  MPI_FLOAT
 /** Define the precision of the input/output datafile read/write */

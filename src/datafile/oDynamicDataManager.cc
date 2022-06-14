@@ -462,7 +462,7 @@ int oDynamicDataManager::InitDynamicDataPatientMotion(const string& a_pathToFile
         motion_subset_stop_time_ms = mp_listPMotionTriggers[ mp_MotionTriggersIndexInFrame[fr][ipm] ] ;
         // calculate the weight based on duration
         m2p_listPMotionWeightInFrame[fr][ipm] =
-                FLTNB(motion_subset_stop_time_ms - motion_subset_start_time_ms) / mp_ID->GetFrameDurationInMs(0, fr);
+                (FLTNB)(motion_subset_stop_time_ms - motion_subset_start_time_ms) / mp_ID->GetFrameDurationInMs(0, fr);
 
         // update motion_subset_start_time_ms for next sub-frame
         motion_subset_start_time_ms = mp_listPMotionTriggers[ mp_MotionTriggersIndexInFrame[fr][ipm] ] ;
@@ -470,7 +470,7 @@ int oDynamicDataManager::InitDynamicDataPatientMotion(const string& a_pathToFile
       // Treat the last sub-frame in this frame
       motion_subset_stop_time_ms = mp_ID->GetFrameTimeStopInMs(0, fr);
       m2p_listPMotionWeightInFrame[fr][mp_frameNbPMotionIndexes[fr]-1] =
-              FLTNB(motion_subset_stop_time_ms - motion_subset_start_time_ms) / mp_ID->GetFrameDurationInMs(0, fr);
+              (FLTNB)(motion_subset_stop_time_ms - motion_subset_start_time_ms) / mp_ID->GetFrameDurationInMs(0, fr);
     }
   }
 
