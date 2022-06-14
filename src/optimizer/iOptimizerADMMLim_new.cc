@@ -544,12 +544,12 @@ int iOptimizerADMMLim_new::DataStep5ComputeCorrections( oProjectionLine* ap_Line
   // Loop on TOF bins
   for (int b=0; b<ap_Line->GetNbTOFBins(); b++)
   {
-    // FLTNB* ap_backwardValues = m3p_backwardValues[a_th][b];                              // the backward values (the result)
+    FLTNB* ap_backwardValues = m3p_backwardValues[a_th][b];                              // the backward values (the result)
     FLTNB a_additiveCorrections = ap_Event->GetAdditiveCorrections(b)*mp_ImageDimensionsAndQuantification->GetFrameDurationInSec(a_bed, a_timeFrame); // the additive corrections
 
     m_AxProduct[a_th] = (HPFLTNB)m2p_forwardValues[a_th][b] - (HPFLTNB)a_additiveCorrections;
     // Backward project (Ax - v^k + u^k), a_forwardModel is Ax here because we have overwritten the Forward Projection computation in this optimizer
-    m3p_backwardValues[a_th][b][0] = m_AxProduct[a_th] - (HPFLTNB)m_vk[a_th] + (HPFLTNB)m_uk[a_th];
+    *ap_backwardValues = m_AxProduct[a_th] - (HPFLTNB)m_vk[a_th] + (HPFLTNB)m_uk[a_th];
 
     if (m_isInPostProcessLoop)
     {
@@ -875,7 +875,7 @@ int iOptimizerADMMLim_new::ImageSpaceSpecificOperations( FLTNB a_currentImageVal
                                                   INTNB a_voxel, int a_tbf, int a_rbf, int a_cbf )
 {
   // Store gradient for next iteration
-  m_grad_before[a_voxel] = ap_correctionValues[0];
+  m_grad_before[a_voxel] = *ap_correctionValues;
   if ((!m_isInPostProcessLoop)&&m_isInDualProcessLoop) // Do x computation
   { 
     ////////////// Update with preconditioned gradient descent //////////////  
