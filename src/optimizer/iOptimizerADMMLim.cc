@@ -723,7 +723,26 @@ int iOptimizerADMMLim::ImageSpaceSpecificOperations( FLTNB a_currentImageValue, 
     HPFLTNB additive_image_update_factor = stepsize * gradient;
 
     // Update image value and store it
+
     *ap_newImageValue = (HPFLTNB)a_currentImageValue + additive_image_update_factor;
+    /*
+    HPFLTNB signOfUpdate = 1.;
+    HPFLTNB objectImageValue = (HPFLTNB)a_currentImageValue + additive_image_update_factor;
+    HPFLTNB multi_image_update_factor = objectImageValue/a_currentImageValue;
+    if (multi_image_update_factor < 0) signOfUpdate = -1.;
+
+    if (abs(multi_image_update_factor) > 1e-2 && abs(multi_image_update_factor) < 100)
+    {
+      *ap_newImageValue = objectImageValue;
+    }else if (abs(multi_image_update_factor) <= 1e-2)
+    {
+      *ap_newImageValue = (HPFLTNB)a_currentImageValue*1e-2*signOfUpdate;
+    }
+    else
+    {
+      *ap_newImageValue = (HPFLTNB)a_currentImageValue*100*signOfUpdate;
+    }
+    */
     // cout << "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*6666666666666666666666-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
   }
 

@@ -896,12 +896,30 @@ int iOptimizerADMMLim_new::ImageSpaceSpecificOperations( FLTNB a_currentImageVal
     }
 
     // Compute additive image update factor
-    HPFLTNB gradient = -(HPFLTNB)m_alpha * (HPFLTNB)*ap_correctionValues + penalty;
+    HPFLTNB gradient = -(HPFLTNB)m_alpha * (HPFLTNB)ap_correctionValues[0] + penalty;
     HPFLTNB additive_image_update_factor = stepsize * gradient;
 
     // Update image value and store it
-    *ap_newImageValue = (HPFLTNB)a_currentImageValue + additive_image_update_factor;
+    // *ap_newImageValue = (HPFLTNB)a_currentImageValue + additive_image_update_factor;
     // dirty 1 : at the end, set this to the gradient
+    
+    HPFLTNB signOfUpdate = 1.;
+    HPFLTNB objectImageValue = (HPFLTNB)a_currentImageValue + additive_image_update_factor;
+    HPFLTNB multi_image_update_factor = objectImageValue/a_currentImageValue;
+    if (multi_image_update_factor < 0) signOfUpdate = -1.;
+
+    if (abs(multi_image_update_factor) > 1e-2 && abs(multi_image_update_factor) < 100)
+    {
+      *ap_newImageValue = objectImageValue;
+    }else if (abs(multi_image_update_factor) <= 1e-2)
+    {
+      *ap_newImageValue = (HPFLTNB)a_currentImageValue*1e-2*signOfUpdate;
+    }
+    else
+    {
+      *ap_newImageValue = (HPFLTNB)a_currentImageValue*100*signOfUpdate;
+    }
+    
   }
 
   // End
