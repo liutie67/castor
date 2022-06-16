@@ -882,17 +882,20 @@ int vOptimizer::DataStep8ComputeFOM( oProjectionLine* ap_Line, vEvent* ap_Event,
   // Loop on TOF bins
   for (int b=0; b<ap_Line->GetNbTOFBins(); b++)
   {
-    // Get the model and the data
-    HPFLTNB model = m2p_forwardValues[a_thread][b];
-    HPFLTNB data  = ap_Event->GetEventValue(b);
-    // Update log likelihood only if model is strictly positive (to avoid numerical issues, we use a threshold at e-10)
-    if (model>1.e-10) m4p_FOMLogLikelihood[a_timeFrame][a_respGate][a_cardGate][a_thread] += data*log(model)-model;
-    // Update RMSE
-    m4p_FOMRMSE[a_timeFrame][a_respGate][a_cardGate][a_thread] += (data-model)*(data-model);
-    // Update number of data channels
-    m4p_FOMNbBins[a_timeFrame][a_respGate][a_cardGate][a_thread]++;
-    // Update the number of data counts
-    m4p_FOMNbData[a_timeFrame][a_respGate][a_cardGate][a_thread] += data;
+    if ((dynamic_cast<iEventPET*>(ap_Event))->GetAtnCorrFactor()>1.02)
+    {
+      // Get the model and the data
+      HPFLTNB model = m2p_forwardValues[a_thread][b];
+      HPFLTNB data  = ap_Event->GetEventValue(b);
+      // Update log likelihood only if model is strictly positive (to avoid numerical issues, we use a threshold at e-10)
+      if (model>1.e-10) m4p_FOMLogLikelihood[a_timeFrame][a_respGate][a_cardGate][a_thread] += data*log(model)-model;
+      // Update RMSE
+      m4p_FOMRMSE[a_timeFrame][a_respGate][a_cardGate][a_thread] += (data-model)*(data-model);
+      // Update number of data channels
+      m4p_FOMNbBins[a_timeFrame][a_respGate][a_cardGate][a_thread]++;
+      // Update the number of data counts
+      m4p_FOMNbData[a_timeFrame][a_respGate][a_cardGate][a_thread] += data;
+    }
   }
   // Normal end
   return 0;
