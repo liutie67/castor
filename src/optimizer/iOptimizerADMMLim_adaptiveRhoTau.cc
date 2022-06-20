@@ -674,7 +674,7 @@ int iOptimizerADMMLim_adaptiveRhoTau::DataSpaceSpecificOperations( FLTNB a_data,
 
 int iOptimizerADMMLim_adaptiveRhoTau::PreImageUpdateSpecificStep()
 {
-  if (m_isInPostProcessLoop)  // only 
+  if (m_isInPostProcessLoop)  // only in post process loop
   {
     FLTNB square_sum_Atu = 0.;
     FLTNB square_sum_Atvv = 0.;
@@ -720,6 +720,24 @@ int iOptimizerADMMLim_adaptiveRhoTau::PreImageUpdateSpecificStep()
     {
         m_square_sum_primal += mp_relPrimalResidual[lor]*mp_relPrimalResidual[lor];
         // m_square_sum_dual += mp_relDualResidual[lor]*mp_relDualResidual[lor];
+    }
+
+    // calculate the norm of Ax(n+1) - v(n+1)
+    FLTNB norm_Axv = 0.;
+    for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
+    {
+      norm_Axv += (mp_vectorAx[lor] - mp_toWrite_vk[lor])*(mp_vectorAx[lor] - mp_toWrite_vk[lor]);
+    }
+
+    // calculate the norm of Ax(n+1) - v(n/n+1) + u(n)
+    FLTNB norm_Axvu = 0.;
+    FLTNB norm_Axv1u = 0.;
+    for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
+    {
+      FLTNB u = mp_DataFile->m2p_additionalData[0][lor];
+      FLTNB v = mp_DataFile->m2p_additionalData[1][lor];
+      norm_Axvu += (mp_vectorAx[lor] - v + u)*(mp_vectorAx[lor] - v + u);
+      norm_Axv1u += (mp_vectorAx[lor] - mp_toWrite_vk[lor] + u)*(mp_vectorAx[lor] - mp_toWrite_vk[lor] + u);
     }
 
     // implement the adaptive formulation of tau
@@ -776,12 +794,24 @@ int iOptimizerADMMLim_adaptiveRhoTau::PreImageUpdateSpecificStep()
     outfile << "relDual" << endl;
     outfile << sqrt(m_square_sum_dual) << endl;
 
+    outfile << "norm of Ax(n+1) - v(n+1)" << endl;
+    outfile << norm_Axv << endl;
+
+    outfile << "norm of Ax(n+1) - v(n) + u(n)" << endl;
+    outfile << norm_Axvu << endl;
+
+    outfile << "norm of Ax(n+1) - v(n+1) + u(n)" << endl;
+    outfile << norm_Axv1u << endl;
+
     outfile << endl;
     outfile << "relPrimal      : " << sqrt(m_square_sum_primal) << endl;
     outfile << "relDual        : " << sqrt(m_square_sum_dual) << endl;
     outfile << "adaptive tau   : " << m_adaptiveTau << endl;
     outfile << "alpha          : " << m_alpha << endl;
     outfile << "adaptive alpha : " << m_adaptiveAlpha << endl;
+    outfile << "norm_Axv       : " << norm_Axv << endl;
+    outfile << "norm_Axvu      : " << norm_Axvu << endl;
+    outfile << "norm_Axv1u     : " << norm_Axv1u << endl;
 
     outfile.close();
   }
