@@ -693,6 +693,9 @@ int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
     }
     m_square_sum_dual = square_sum_Atvv / square_sum_Atu;
 
+    // norm of normal dual residual
+    FLTNB dualResidual = m_alpha*square_sum_Atvv;
+
     // calculate the square sum of Ax, v and u at (k+1)th iteration
     for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
     {
@@ -721,6 +724,9 @@ int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
         m_square_sum_primal += mp_relPrimalResidual[lor]*mp_relPrimalResidual[lor];
         // m_square_sum_dual += mp_relDualResidual[lor]*mp_relDualResidual[lor];
     }
+
+    // norm of normal primal residual
+    FLTNB primalResidual = m_square_sum_primal*primalMax*primalMax;
 
     // calculate the norm of Ax(n+1) - v(n+1)
     FLTNB norm_Axv = 0.;
@@ -808,6 +814,12 @@ int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
     outfile << "norm of Ax(n+1) - v(n+1) + u(n)" << endl;
     outfile << norm_Axv1u << endl;
 
+    outfile << "primal residual" << endl;
+    outfile << primalResidual << endl;
+
+    outfile << "dual residual" << endl;
+    outfile << dualResidual << endl;
+
     outfile << endl;
     outfile << "relPrimal      : " << sqrt(m_square_sum_primal) << endl;
     outfile << "relDual        : " << sqrt(m_square_sum_dual) << endl;
@@ -817,6 +829,8 @@ int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
     outfile << "norm_Axv       : " << norm_Axv << endl;
     outfile << "norm_Axvu      : " << norm_Axvu << endl;
     outfile << "norm_Axv1u     : " << norm_Axv1u << endl;
+    outfile << "primal residual: " << primalResidual << endl;
+    outfile << "dual residual  : " << dualResidual << endl;
 
     outfile.close();
   }
