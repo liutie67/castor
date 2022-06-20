@@ -730,14 +730,19 @@ int iOptimizerADMMLim_adaptiveRhoTau::PreImageUpdateSpecificStep()
     }
 
     // calculate the norm of Ax(n+1) - v(n/n+1) + u(n)
-    FLTNB norm_Axvu = 0.;
-    FLTNB norm_Axv1u = 0.;
-    for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
+    FLTNB norm_Axvu = -1.;
+    FLTNB norm_Axv1u = -1.;
+    if (mp_DataFile->GetNbAdditionalData()!=0)
     {
-      FLTNB u = mp_DataFile->m2p_additionalData[0][lor];
-      FLTNB v = mp_DataFile->m2p_additionalData[1][lor];
-      norm_Axvu += (mp_vectorAx[lor] - v + u)*(mp_vectorAx[lor] - v + u);
-      norm_Axv1u += (mp_vectorAx[lor] - mp_toWrite_vk[lor] + u)*(mp_vectorAx[lor] - mp_toWrite_vk[lor] + u);
+      norm_Axvu = 0.;
+      norm_Axv1u = 0.;
+      for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
+      {
+        FLTNB u = mp_DataFile->m2p_additionalData[0][lor];
+        FLTNB v = mp_DataFile->m2p_additionalData[1][lor];
+        norm_Axvu += (mp_vectorAx[lor] - v + u)*(mp_vectorAx[lor] - v + u);
+        norm_Axv1u += (mp_vectorAx[lor] - mp_toWrite_vk[lor] + u)*(mp_vectorAx[lor] - mp_toWrite_vk[lor] + u);
+      }
     }
 
     // implement the adaptive formulation of tau
