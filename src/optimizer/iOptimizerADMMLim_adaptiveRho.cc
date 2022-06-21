@@ -734,6 +734,7 @@ int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
     {
       norm_Axv += (mp_vectorAx[lor] - mp_toWrite_vk[lor])*(mp_vectorAx[lor] - mp_toWrite_vk[lor]);
     }
+    norm_Axv = sqrt(norm_Axv);
 
     // calculate the norm of Ax(n+1) - v(n/n+1) + u(n)
     FLTNB norm_Axvu = -1.;
@@ -749,6 +750,8 @@ int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
         norm_Axvu += (mp_vectorAx[lor] - v + u)*(mp_vectorAx[lor] - v + u);
         norm_Axv1u += (mp_vectorAx[lor] - mp_toWrite_vk[lor] + u)*(mp_vectorAx[lor] - mp_toWrite_vk[lor] + u);
       }
+      norm_Axvu = sqrt(norm_Axvu);
+      norm_Axv1u = sqrt(norm_Axv1u);
     }
 
     // implement the adaptive formulation of tau
