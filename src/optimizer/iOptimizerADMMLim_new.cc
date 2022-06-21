@@ -694,7 +694,7 @@ int iOptimizerADMMLim_new::PreImageUpdateSpecificStep()
     m_square_sum_dual = square_sum_Atvv / square_sum_Atu;
 
     // norm of normal dual residual
-    FLTNB dualResidual = m_alpha*square_sum_Atvv;
+    FLTNB dualResidual = m_alpha*sqrt(square_sum_Atvv);
 
     // calculate the square sum of Ax, v and u at (k+1)th iteration
     for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
@@ -726,7 +726,7 @@ int iOptimizerADMMLim_new::PreImageUpdateSpecificStep()
     }
 
     // norm of normal primal residual
-    FLTNB primalResidual = m_square_sum_primal*primalMax*primalMax;
+    FLTNB primalResidual = sqrt(m_square_sum_primal)*primalMax;
 
     // calculate the norm of Ax(n+1) - v(n+1)
     FLTNB norm_Axv = 0.;
