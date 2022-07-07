@@ -617,8 +617,8 @@ int iOptimizerADMMLim_new::DataStep6Optional( oProjectionLine* ap_Line, vEvent* 
       }
       else if (m_yData[a_th] > 0. and beta >= 0.)
       {
-        //v_hat = gamma / (sqrt(beta * beta + gamma) + beta); // formula proposed in Lim et al., but numerically instable
-        v_hat = sqrt(beta * beta + gamma) - beta; // same formula written in a different way
+        v_hat = gamma / (sqrt(beta * beta + gamma) + beta); // formula proposed in Lim et al., but numerically instable
+        //v_hat = sqrt(beta * beta + gamma) - beta; // same formula written in a different way
       }
     }
 
