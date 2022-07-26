@@ -784,6 +784,13 @@ int iOptimizerADMMLim_adaptiveRho::PreImageUpdateSpecificStep()
     }
     // m_adaptiveAlpha = m_alpha;  // do not change alpha
 
+    // do the same scaling for u
+    FLTNB coeff_alpha = m_adaptiveAlpha/m_alpha;
+    for (int lor=0; lor<mp_DataFile->GetSinogramSize(); lor++)
+    {
+      mp_toWrite_uk[lor] = mp_toWrite_uk[lor]/coeff_alpha;
+    }
+
     // get the path
     sOutputManager* p_outputManager = sOutputManager::GetInstance();
     string temps_ss_alpha;
